@@ -44,11 +44,16 @@ async function startServer() {
 
   app.use(express.json());
   app.use(cors());
+  app.set('trust proxy', 1); // ช่วยให้ session ทำงานได้ดีขึ้นบนเซิร์ฟเวอร์ที่มี Proxy (เช่น Plesk)
+  
   app.use(session({
     secret: 'edugen-secret-key-123',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false }
+    resave: true,
+    saveUninitialized: true,
+    cookie: { 
+      secure: false, // เปลี่ยนเป็น true ถ้าใช้ https และมีปัญหา
+      maxAge: 24 * 60 * 60 * 1000 
+    }
   }));
 
   // Auth Routes
@@ -85,7 +90,8 @@ async function startServer() {
         res.status(401).json({ success: false, message: 'เลขประจำตัวหรือรหัสผ่านไม่ถูกต้อง' });
       }
     } catch (error) {
-      res.status(500).json({ success: false, message: 'Database connection failed' });
+      console.error('Login Database Error:', error);
+      res.status(500).json({ success: false, message: `Database error: ${error.message}` });
     }
   });
 
