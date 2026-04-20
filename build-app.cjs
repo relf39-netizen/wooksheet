@@ -1,19 +1,21 @@
-const { build } = require('vite');
-const react = require('@vitejs/plugin-react');
-const tailwindcss = require('@tailwindcss/vite').default || require('@tailwindcss/vite');
 const path = require('path');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
 async function runBuild() {
-  console.log('Starting School-OS style build process...');
+  console.log('--- STARTING DYNAMIC BUILD (CJS with ESM Bridge) ---');
   
   try {
+    // ใช้ Dynamic Import เพื่อโหลดโมดูลที่เป็น ESM เท่านั้น
+    const { build } = await import('vite');
+    const { default: react } = await import('@vitejs/plugin-react');
+    const { default: tailwindcss } = await import('@tailwindcss/vite');
+
     await build({
       root: process.cwd(),
       base: './',
-      configFile: false,
+      configFile: false, // ข้ามการโหลดไฟล์อัตโนมัติเพื่อเลี่ยงปัญหา Permission
       plugins: [
         react(),
         tailwindcss()
@@ -39,9 +41,10 @@ async function runBuild() {
         }
       }
     });
-    console.log('Build completed successfully.');
+    console.log('--- BUILD SUCCESSFUL ---');
   } catch (error) {
-    console.error('Build failed:', error);
+    console.error('--- BUILD FAILED ---');
+    console.error(error);
     process.exit(1);
   }
 }
