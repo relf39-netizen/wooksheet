@@ -39,6 +39,26 @@ async function runBuild() {
       }
     });
     console.log('--- BUILD SUCCESSFUL ---');
+
+    console.log('--- COPYING FILES TO ROOT FOR IIS ---');
+    const fsNonPromise = require('fs');
+    const distPath = path.resolve(__dirname, 'dist');
+    const rootPath = path.resolve(__dirname);
+
+    // อ่านรายการไฟล์ใน dist
+    const files = fsNonPromise.readdirSync(distPath);
+    files.forEach(file => {
+      const srcPath = path.join(distPath, file);
+      const destPath = path.join(rootPath, file);
+      
+      // คัดลอกเฉพาะไฟล์ที่จำเป็น (index.html, .js, .css) มาไว้ที่ root
+      if (fsNonPromise.statSync(srcPath).isFile()) {
+        fsNonPromise.copyFileSync(srcPath, destPath);
+        console.log(`Copied: ${file}`);
+      }
+    });
+    console.log('--- DEPLOYMENT TO ROOT COMPLETED ---');
+
   } catch (error) {
     console.error('--- BUILD FAILED ---');
     console.error(error);
