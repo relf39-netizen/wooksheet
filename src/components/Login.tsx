@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import { User as UserIcon, Lock, ShieldCheck, Mail } from 'lucide-react';
 
-export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
+export default function Login({ onLogin, onNavigate }: { onLogin: (user: any) => void, onNavigate: (page: string) => void }) {
   const [citizenId, setCitizenId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,9 +94,12 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
           <footer className="mt-8 text-center border-t border-slate-100 pt-6">
             <p className="text-slate-500 text-sm">
               ยังไม่มีบัญชีเข้าใช้งาน?{' '}
-              <Link to="/register" className="text-indigo-600 font-bold hover:underline">
+              <button 
+                onClick={() => onNavigate('register')} 
+                className="text-indigo-600 font-bold hover:underline bg-transparent border-none p-0 cursor-pointer"
+              >
                 ลงทะเบียนครูใหม่
-              </Link>
+              </button>
             </p>
           </footer>
         </div>

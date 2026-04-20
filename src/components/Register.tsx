@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import { User, School, Book, IdCard, Lock, ChevronLeft } from 'lucide-react';
 
-export default function Register() {
+export default function Register({ onNavigate }: { onNavigate: (page: string) => void }) {
   const [formData, setFormData] = useState({
     citizen_id: '',
     name: '',
@@ -14,7 +13,7 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +34,7 @@ export default function Register() {
       });
       const data = await res.json();
       if (data.success) {
-        alert('ลงทะเบียนสำเร็จ! โปรดรอการอนุมัติจากผู้ดูแลระบบ');
-        navigate('/login');
+        setSuccess(true);
       } else {
         setError(data.message || 'ลงทะเบียนไม่สำเร็จ');
       }
@@ -47,6 +45,26 @@ export default function Register() {
     }
   };
 
+  if (success) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
+        <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-xl border border-slate-100">
+          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white mx-auto mb-6">
+            <User size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">ลงทะเบียนสำเร็จ!</h2>
+          <p className="text-slate-600 mb-8">บัญชีของคุณกำลังรอการตรวจสอบจากผู้ดูแลระบบ</p>
+          <button 
+            onClick={() => onNavigate('login')}
+            className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest"
+          >
+            ไปที่หน้าล็อกอิน
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-6 flex items-center justify-center">
       <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
@@ -54,10 +72,10 @@ export default function Register() {
           {/* Left Panel */}
           <div className="md:col-span-2 bg-indigo-600 p-10 text-white flex flex-col justify-between">
             <div>
-              <Link to="/login" className="inline-flex items-center text-indigo-100 hover:text-white transition-colors mb-8">
+              <button onClick={() => onNavigate('login')} className="inline-flex items-center text-indigo-100 hover:text-white transition-colors mb-8 bg-transparent border-none p-0 cursor-pointer">
                 <ChevronLeft size={20} />
                 <span className="text-sm font-bold">กลับไปหน้าล็อกอิน</span>
-              </Link>
+              </button>
               <h1 className="text-3xl font-black mb-4">ลงทะเบียนครู</h1>
               <p className="text-indigo-100 text-sm leading-relaxed">
                 ร่วมเป็นส่วนหนึ่งของระบบสนับสนุนการเรียนรู้ เพื่อช่วยลดภาระงานครูและยกระดับประสิทธิภาพของนักเรียน

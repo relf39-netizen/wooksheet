@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Key, PlusCircle, History, UserCheck, AlertCircle, FileText } from 'lucide-react';
+import { Key, PlusCircle, History, UserCheck, AlertCircle, FileText, ChevronRight } from 'lucide-react';
 import { User, Exercise } from '../types';
 
-export default function TeacherDashboard({ user }: { user: User }) {
+export default function TeacherDashboard({ user, onNavigate }: { user: User, onNavigate: (page: string, param?: string) => void }) {
   const [aiKey, setAiKey] = useState(user.ai_key || '');
   const [updating, setUpdating] = useState(false);
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const apiBase = '/server.cjs';
@@ -48,14 +46,14 @@ export default function TeacherDashboard({ user }: { user: User }) {
               desc="ใช้ AI ช่วยวิเคราะห์และสร้างแบบฝึกหัดตามหลักสูตร"
               icon={<PlusCircle size={28} />}
               color="bg-indigo-600 shadow-indigo-100"
-              onClick={() => navigate('/generate')}
+              onClick={() => onNavigate('generate')}
             />
             <ActionCard 
               title="คลังแบบฝึกหัด" 
               desc="เรียกดูหรือพิมพ์งานที่เคยสร้างไว้"
               icon={<History size={28} />}
               color="bg-slate-900 shadow-slate-200"
-              onClick={() => navigate('/history')}
+              onClick={() => onNavigate('history')}
             />
           </div>
 
@@ -65,7 +63,7 @@ export default function TeacherDashboard({ user }: { user: User }) {
                 <span className="w-1 h-4 bg-indigo-500 rounded-full"></span>
                 แบบฝึกหัดล่าสุด
               </h3>
-              <button onClick={() => navigate('/history')} className="text-xs font-bold text-indigo-600 hover:underline uppercase tracking-tight">ดูทั้งหมด</button>
+              <button onClick={() => onNavigate('history')} className="text-xs font-bold text-indigo-600 hover:underline uppercase tracking-tight">ดูทั้งหมด</button>
             </div>
             
             {exercises.length === 0 ? (
@@ -76,7 +74,7 @@ export default function TeacherDashboard({ user }: { user: User }) {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {exercises.slice(0, 4).map((ex) => (
-                  <div key={ex.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group" onClick={() => navigate(`/print/${ex.id}`)}>
+                  <div key={ex.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group" onClick={() => onNavigate('print', String(ex.id))}>
                     <div className="flex items-start justify-between mb-4">
                       <div className="p-2 bg-slate-50 rounded-lg text-slate-400 group-hover:text-indigo-600 transition-colors">
                         <FileText size={20} />

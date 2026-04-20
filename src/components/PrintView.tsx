@@ -1,23 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { Printer, ChevronLeft, Download, CheckCircle2 } from 'lucide-react';
 import { Exercise } from '../types';
 
-export default function PrintView() {
-  const { id } = useParams();
+export default function PrintView({ exerciseId, onNavigate }: { exerciseId: string | null, onNavigate: (page: string) => void }) {
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('/api/exercises')
+    const apiBase = '/server.cjs';
+    fetch(`${apiBase}/api/exercises`)
       .then(res => res.json())
       .then(data => {
-        const found = data.find((ex: Exercise) => ex.id === Number(id));
+        const found = data.find((ex: Exercise) => ex.id === Number(exerciseId));
         setExercise(found);
         setLoading(false);
       });
-  }, [id]);
+  }, [exerciseId]);
 
   if (loading) return <div className="text-center py-20">กำลังจัดเตรียมไฟล์...</div>;
   if (!exercise) return <div className="text-center py-20">ไม่พบแบบฝึกหัด</div>;
@@ -28,7 +26,7 @@ export default function PrintView() {
     <div className="space-y-8 print:space-y-0 print:m-0">
       {/* UI Controls - Hidden on Print */}
       <div className="flex items-center justify-between bg-white p-6 rounded-3xl border border-slate-100 shadow-sm print:hidden">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-500 font-bold hover:text-slate-800 transition-colors">
+        <button onClick={() => onNavigate('history')} className="flex items-center gap-2 text-slate-500 font-bold hover:text-slate-800 transition-colors">
           <ChevronLeft size={20} />
           <span>ย้อนกลับ</span>
         </button>

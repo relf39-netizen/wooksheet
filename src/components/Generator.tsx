@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Sparkles, Save, Printer, ChevronLeft, Loader2, Wand2, Type, CheckSquare, Layers, FileText } from 'lucide-react';
 import { User, ExerciseType } from '../types';
 import { GoogleGenAI, Type as GeminiType } from "@google/genai";
@@ -14,7 +13,7 @@ const EXERCISE_TYPES = [
 
 const GRADES = ['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6', 'ม.1', 'ม.2', 'ม.3'];
 
-export default function Generator({ user }: { user: User }) {
+export default function Generator({ user, onNavigate }: { user: User, onNavigate: (page: string) => void }) {
   const [formData, setFormData] = useState({
     title: '',
     course: '',
@@ -27,7 +26,6 @@ export default function Generator({ user }: { user: User }) {
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [saving, setSaving] = useState(false);
-  const navigate = useNavigate();
 
   const handleGenerate = async () => {
     if (!user.ai_key) {
@@ -126,7 +124,7 @@ export default function Generator({ user }: { user: User }) {
       const data = await res.json();
       if (data.success) {
         alert('บันทึกสำเร็จ');
-        navigate('/history');
+        onNavigate('history');
       }
     } catch (err) {
       alert('บันทึกไม่สำเร็จ');
@@ -139,7 +137,7 @@ export default function Generator({ user }: { user: User }) {
     <div className="space-y-8 pb-20">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="p-2 hover:bg-white rounded-lg border border-slate-200 transition-all text-slate-500 shadow-sm">
+          <button onClick={() => onNavigate('home')} className="p-2 hover:bg-white rounded-lg border border-slate-200 transition-all text-slate-500 shadow-sm">
             <ChevronLeft size={20} />
           </button>
           <div>

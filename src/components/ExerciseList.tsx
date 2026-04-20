@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { FileText, Printer, Search, Calendar, ChevronRight } from 'lucide-react';
 import { Exercise } from '../types';
 
-export default function ExerciseList() {
+export default function ExerciseList({ onNavigate }: { onNavigate: (page: string, param?: string) => void }) {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const navigate = useNavigate();
 
   useEffect(() => {
     const apiBase = '/server.cjs';
@@ -59,7 +57,7 @@ export default function ExerciseList() {
           filtered.map(ex => (
             <div 
               key={ex.id} 
-              onClick={() => navigate(`/print/${ex.id}`)}
+              onClick={() => onNavigate('print', String(ex.id))}
               className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between"
             >
               <div>
