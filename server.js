@@ -48,6 +48,11 @@ async function startServer() {
 
   // เพิ่ม Log เพื่อดู Request ที่เข้ามา
   app.use((req, res, next) => {
+    // ตัด /server.cjs ออกจาก URL ถ้ามี (เพื่อรองรับการเรียกตรงบน IIS)
+    if (req.url.startsWith('/server.cjs')) {
+      req.url = req.url.replace('/server.cjs', '');
+      if (req.url === '') req.url = '/';
+    }
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
     next();
   });
