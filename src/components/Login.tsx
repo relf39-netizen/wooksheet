@@ -58,13 +58,13 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                   value={citizenId}
                   onChange={(e) => setCitizenId(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-sm placeholder:text-slate-300"
-                  placeholder="กรอกเลขประจำตัวประชาชน"
+                  placeholder="กรุณากรอกเลขประจำตัวประชาชน"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 ml-1">PASSWORD ACCESS</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 ml-1">รหัสผ่าน</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <input
@@ -73,7 +73,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-sm placeholder:text-slate-300"
-                  placeholder="••••••••"
+                  placeholder="กรุณากรอกรหัสผ่าน"
                 />
               </div>
             </div>
@@ -89,13 +89,13 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
               disabled={loading}
               className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 uppercase tracking-widest"
             >
-              {loading ? 'PROCESSING...' : 'LOGIN TO ACCESS'}
+              {loading ? 'กำลังดำเนินการ...' : 'ล็อกอินเข้าสู่ระบบ'}
             </button>
           </form>
 
           <footer className="mt-8 text-center border-t border-slate-100 pt-6">
             <p className="text-slate-500 text-sm">
-              ยังไม่มีบัญชีเช้าใช้งาน?{' '}
+              ยังไม่มีบัญชีเข้าใช้งาน?{' '}
               <Link to="/register" className="text-indigo-600 font-bold hover:underline">
                 ลงทะเบียนครูใหม่
               </Link>
