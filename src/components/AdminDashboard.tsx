@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserCheck, UserX, Clock, Search, School, User as UserIcon, Database, Users, ShieldAlert } from 'lucide-react';
+import { UserCheck, UserX, Clock, Search, School, User as UserIcon, Database, Users, ShieldAlert, Trash2 } from 'lucide-react';
 import { Teacher } from '../types';
 
 export default function AdminDashboard({ initialTab = 'members' }: { initialTab?: 'members' | 'system' }) {
@@ -45,6 +45,20 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, role })
+    });
+    const data = await res.json();
+    if (data.success) {
+      fetchTeachers();
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('คุณต้องการลบสมาชิกรายนี้ใช่หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้')) return;
+    const apiBase = '/server.cjs';
+    const res = await fetch(`${apiBase}/api/admin/delete-teacher`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
     });
     const data = await res.json();
     if (data.success) {
@@ -190,21 +204,30 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
                           <span>อนุมัติ</span>
                         </button>
                         <button 
-                          onClick={() => handleApprove(t.id, 'rejected')}
-                          className="bg-white text-slate-500 border border-slate-200 px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-900 hover:text-white transition-all uppercase text-[10px] tracking-widest"
+                          onClick={() => handleDelete(t.id)}
+                          className="bg-white text-red-500 border border-red-100 px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-red-600 hover:text-white transition-all uppercase text-[10px] tracking-widest"
                         >
                           <UserX size={14} />
-                          <span>ปฏิเสธ</span>
+                          <span>ไม่รับอนุมัติ (ลบ)</span>
                         </button>
                       </>
                     )}
                     {t.status !== 'pending' && (
-                      <button 
-                        onClick={() => handleApprove(t.id, 'pending')}
-                        className="text-slate-400 text-[9px] font-bold uppercase tracking-widest hover:text-indigo-600 px-3 py-1.5 border border-transparent hover:border-indigo-100 rounded-lg transition-all"
-                      >
-                        Reset / ตรวจสอบใหม่
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => handleApprove(t.id, 'pending')}
+                          className="text-slate-400 text-[9px] font-bold uppercase tracking-widest hover:text-indigo-600 px-3 py-1.5 border border-transparent hover:border-indigo-100 rounded-lg transition-all"
+                        >
+                          ตรวจสอบใหม่
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(t.id)}
+                          className="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-600 hover:text-white transition-all border border-red-100"
+                          title="ลบสมาชิก"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

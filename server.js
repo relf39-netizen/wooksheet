@@ -185,6 +185,15 @@ async function startServer() {
     } catch (error) { res.status(500).send(); }
   });
 
+  app.post('/api/admin/delete-teacher', async (req, res) => {
+    if (req.session?.user?.role !== 'admin') return res.status(403).send();
+    const { id } = req.body;
+    try {
+      await pool.execute('DELETE FROM teachers WHERE id = ?', [id]);
+      res.json({ success: true });
+    } catch (error) { res.status(500).send(); }
+  });
+
   app.post('/api/admin/db-sync', async (req, res) => {
     if (req.session?.user?.role !== 'admin') return res.status(403).send();
     try {

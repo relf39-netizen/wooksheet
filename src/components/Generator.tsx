@@ -8,8 +8,89 @@ const EXERCISE_TYPES = [
   { id: 'subjective', label: 'แบบอัตนัย (เติมคำ)', icon: <Type size={18} /> },
   { id: 'matching', label: 'แบบจับคู่', icon: <Layers size={18} /> },
   { id: 'essay', label: 'แบบเขียนเรียงความ', icon: <FileText size={18} /> },
+  { id: 'math_steps', label: 'โจทย์คณิตศาสตร์ (แสดงวิธีทำ)', icon: <Layers size={18} /> },
   { id: 'image_sentence', label: 'แบบแต่งประโยคจากภาพ', icon: <Sparkles size={18} /> },
 ];
+
+function ExerciseRender({ result, exerciseType, sectionIdx }: { result: any, exerciseType: string, sectionIdx?: number }) {
+  return (
+    <div className="mb-12 last:mb-0">
+      <div className="text-center border-b border-black pb-4 mb-6">
+        <h3 className="text-xl font-bold">
+          {sectionIdx && <span>ตอนที่ {sectionIdx}: </span>}
+          {result.title}
+        </h3>
+      </div>
+      
+      <div className="mb-6 bg-slate-50 p-4 border-l-4 border-black">
+        <p className="text-sm font-bold leading-relaxed">{result.description}</p>
+      </div>
+
+      <div className="space-y-8">
+        {result.items.map((item: any, idx: number) => (
+          <div key={idx} className="space-y-4">
+            <div className="text-base font-bold leading-relaxed flex gap-3">
+              <span className="shrink-0">{idx + 1}.</span>
+              <div className="flex-1">
+                {exerciseType === 'matching' ? (
+                  <div className="grid grid-cols-2 gap-24">
+                    <div className="border-b border-black pb-1">{item.question}</div>
+                    <div className="border-b border-black pb-1 text-right italic text-slate-300">....................................</div>
+                  </div>
+                ) : (
+                  <span>{item.question}</span>
+                )}
+              </div>
+            </div>
+            
+            {exerciseType === 'multiple_choice' && item.options && (
+              <div className="grid grid-cols-2 gap-x-12 gap-y-3 pl-8">
+                {item.options.map((opt: string, oIdx: number) => (
+                  <div key={oIdx} className="flex items-center gap-2 text-sm italic">
+                    <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center text-[11px] font-bold shrink-0">
+                      {String.fromCharCode(65 + oIdx)}
+                    </div>
+                    <span>{opt}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {exerciseType === 'math_steps' && (
+              <div className="pl-8 space-y-5">
+                <p className="text-xs text-slate-500 font-bold">วิธีทำ:</p>
+                <div className="space-y-4">
+                  <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                  <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                  <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                  <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                  <div className="flex items-end gap-3 pt-2">
+                    <span className="text-xs font-black shrink-0">ตอบ:</span>
+                    <div className="border-b border-dotted border-slate-400 h-8 flex-1"></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {(exerciseType === 'subjective' || exerciseType === 'essay' || exerciseType === 'image_sentence') && (
+              <div className="pl-8 space-y-3">
+                <div className="border-b border-dotted border-slate-400 h-8"></div>
+                {exerciseType === 'essay' && (
+                  <>
+                    <div className="border-b border-dotted border-slate-400 h-8"></div>
+                    <div className="border-b border-dotted border-slate-400 h-8"></div>
+                    <div className="border-b border-dotted border-slate-400 h-8"></div>
+                    <div className="border-b border-dotted border-slate-400 h-8"></div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const GRADES = ['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6', 'ม.1', 'ม.2', 'ม.3'];
 
@@ -37,6 +118,7 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [combinedResults, setCombinedResults] = useState<any[]>([]);
 
   const handleGenerate = async () => {
     if (!user.ai_key) {
@@ -62,16 +144,21 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
       รูปแบบ: ${formData.type}
       จำนวนข้อ: ${formData.count} ข้อ
       
+      คำแนะนำเพิ่มเติมตามรูปแบบ:
+      - ถ้าเป็น 'matching' (จับคู่): ให้สร้างรายการฝั่งซ้ายและฝั่งขวาที่สอดคล้องกัน โดยใน items ให้มี field "left" และ "right"
+      - ถ้าเป็น 'math_steps' (แสดงวิธีทำ): ให้สร้างโจทย์คณิตศาสตร์ที่เน้นการแสดงวิธีทำอย่างละเอียด
+      
       ให้ตอบกลับเป็น JSON ภาษาไทยที่มีโครงสร้างดังนี้:
       {
         "title": "หัวข้อที่สร้าง",
-        "description": "คำชี้แจงสำหรับนักเรียน",
+        "description": "คำชี้แจงสำหรับนักเรียน (ให้สอดคล้องกับรูปแบบแบบฝึกหัดและหลักสูตรแกนกลาง)",
         "items": [
           {
-            "question": "โจทย์คำถาม",
-            "options": ["ตัวเลือก 1", "ตัวเลือก 2", "ตัวเลือก 3", "ตัวเลือก 4"], // สำหรับปรนัยเท่านั้น ถ้าไม่ใช่ให้ข้ามไป
-            "answer": "คำตอบที่ถูกต้องหรือแนวทางคำตอบ",
-            "explanation": "คำอธิบายเหตุผล"
+            "question": "โจทย์คำถาม หรือ สิ่งที่อยู่ฝั่งซ้าย (ถ้าเป็นจับคู่)",
+            "options": ["ตัวเลือก 1", "ตัวเลือก 2", "ตัวเลือก 3", "ตัวเลือก 4"], // สำหรับปรนัยเท่านั้น
+            "answer": "คำตอบที่ถูกต้อง หรือ สิ่งที่อยู่ฝั่งขวา (ถ้าเป็นจับคู่) หรือ เฉลยวิธีทำ (ถ้าเป็นคณิตศาสตร์)",
+            "explanation": "คำอธิบายเหตุผลหรือขั้นตอน",
+            "math_hint": "แนวทางการเขียนวิธีทำ (ถ้าเป็นคณิตศาสตร์)"
           }
         ]
       }`;
@@ -142,6 +229,68 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleAddSection = () => {
+    if (result) {
+      setCombinedResults([...combinedResults, { ...result, type: formData.type }]);
+      setResult(null);
+    }
+  };
+
+  const handleClear = () => {
+    setCombinedResults([]);
+    setResult(null);
+  };
+
+  const printArea = () => {
+    return (
+      <div id="printable-area" className="w-full bg-white text-black p-12 max-w-[21cm] min-h-[29.7cm] flex flex-col font-['Sarabun']">
+        {/* Student Fields Header */}
+        <div className="flex justify-between items-center border-b-2 border-black pb-4 mb-8">
+          <div className="flex-1 space-y-2 text-sm">
+            <div className="flex gap-4">
+              <span className="shrink-0">ชื่อ-นามสกุล: ................................................................................................</span>
+              <span className="shrink-0">เลขที่: .................</span>
+            </div>
+            <div className="flex gap-10">
+              <span>ชั้นประถมศึกษาปีที่: ................. / .................</span>
+              <span>วิชา: {formData.course}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Exercises Content */}
+        <div className="flex-1">
+          {combinedResults.length > 0 ? (
+            combinedResults.map((res, rIdx) => (
+              <ExerciseRender key={rIdx} result={res} exerciseType={res.type} sectionIdx={rIdx + 1} />
+            ))
+          ) : result ? (
+            <ExerciseRender result={result} exerciseType={formData.type} />
+          ) : null}
+        </div>
+
+        {/* Teacher Credits Footer */}
+        <div className="mt-12 pt-8 border-t border-slate-200">
+          <div className="text-right space-y-1">
+            <p className="text-xs font-bold text-slate-900">ผู้สร้าง: {user.name}</p>
+            <p className="text-[10px] text-slate-500">ตำแหน่ง: {user.school || 'ครูผู้สอน'}</p>
+            <p className="text-[9px] text-slate-400 italic uppercase">Generated by EduGen AI</p>
+          </div>
+        </div>
+
+        <style>{`
+          @media print {
+            body * { visibility: hidden; background: white !important; }
+            #printable-area, #printable-area * { visibility: visible; }
+            #printable-area { position: absolute; left: 0; top: 0; width: 100% !important; margin: 0 !important; padding: 2cm !important; box-shadow: none !important; border: none !important; }
+            button { display: none !important; }
+          }
+          @page { size: A4; margin: 0; }
+        `}</style>
+      </div>
+    );
   };
 
   return (
@@ -286,7 +435,7 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
             </div>
 
             <div className="flex-1 p-8 bg-slate-100 overflow-y-auto flex justify-center">
-              {!result && !generating ? (
+              {!result && !generating && combinedResults.length === 0 ? (
                 <div className="self-center flex flex-col items-center text-slate-400 gap-4">
                   <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center">
                     <Sparkles size={32} className="opacity-50" />
@@ -294,7 +443,7 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
                   <p className="text-sm font-bold uppercase tracking-widest">Awaiting Generator</p>
                 </div>
               ) : generating ? (
-                <div className="w-full bg-white shadow-xl h-full p-10 max-w-[500px] animate-pulse flex flex-col gap-8">
+                <div className="w-full bg-white shadow-xl h-full p-10 max-w-[600px] animate-pulse flex flex-col gap-8">
                   <div className="h-10 bg-slate-100 rounded w-full mx-auto mb-8 border-b-2 border-slate-200 pb-4"></div>
                   <div className="space-y-6">
                     {[1,2,3,4].map(i => (
@@ -306,49 +455,25 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
                   </div>
                 </div>
               ) : (
-                <div className="w-full bg-white shadow-2xl min-h-fit p-10 max-w-[550px] flex flex-col border border-slate-300 animate-in zoom-in-95 duration-300">
-                  <div className="text-center border-b-2 border-slate-800 pb-4 mb-8">
-                    <h2 className="text-xl font-bold uppercase tracking-tight">{result.title}</h2>
-                    <p className="text-[10px] text-slate-500 font-bold tracking-widest mt-1">
-                      {formData.course} | {formData.grade} | {formData.indicators}
-                    </p>
-                  </div>
-                  
-                  <div className="mb-6 bg-slate-50 p-4 border-l-4 border-slate-900">
-                    <p className="text-[10px] italic leading-relaxed text-slate-700">{result.description}</p>
-                  </div>
-
-                  <div className="space-y-8 flex-1">
-                    {result.items.map((item: any, idx: number) => (
-                      <div key={idx} className="space-y-4">
-                        <p className="text-sm font-bold leading-relaxed">
-                          <span className="mr-2">{idx + 1}.</span>
-                          {item.question}
-                        </p>
-                        
-                        {item.options && (
-                          <div className="grid grid-cols-2 gap-x-6 gap-y-2 pl-6">
-                            {item.options.map((opt: string, oIdx: number) => (
-                              <div key={oIdx} className="flex items-center gap-2 text-xs">
-                                <div className="w-5 h-5 rounded-full border border-slate-400 flex items-center justify-center text-[10px] font-bold">
-                                  {String.fromCharCode(65 + oIdx)}
-                                </div>
-                                <span>{opt}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {!item.options && (
-                          <div className="ml-6 border-b border-dotted border-slate-300 h-6"></div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-20 pt-4 border-t border-slate-100 flex justify-between text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                    <span>EduGen AI Generation</span>
-                    <span>Page 1/1</span>
-                  </div>
+                <div className="flex flex-col gap-4">
+                  {result && (
+                    <div className="flex justify-center gap-2 mb-4 no-print">
+                      <button 
+                        onClick={handleAddSection}
+                        className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2"
+                      >
+                        <Layers size={14} />
+                        เพิ่มเป็นส่วนถัดไป (Add Section)
+                      </button>
+                      <button 
+                        onClick={handleClear}
+                        className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all"
+                      >
+                        ล้างข้อมูลทั้งหมด
+                      </button>
+                    </div>
+                  )}
+                  {printArea()}
                 </div>
               )}
             </div>
