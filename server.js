@@ -78,7 +78,7 @@ async function startServer() {
         if (user.status !== 'active') {
           return res.status(403).json({ success: false, message: 'บัญชีของคุณกำลังรอการตรวจสอบจากผู้ดูแลระบบ' });
         }
-        req.session.user = { id: user.id, role: 'teacher', name: user.name, ai_key: user.ai_key };
+        req.session.user = { id: user.id, role: 'teacher', name: user.name, ai_key: user.ai_key, school: user.school };
         res.json({ success: true, user: req.session.user });
       } else {
         res.status(401).json({ success: false, message: 'เลขประจำตัวหรือรหัสผ่านไม่ถูกต้อง' });

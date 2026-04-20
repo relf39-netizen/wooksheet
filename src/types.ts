@@ -3,6 +3,7 @@ export interface User {
   role: 'teacher' | 'admin';
   name: string;
   ai_key?: string;
+  school?: string;
 }
 
 export interface Teacher {
