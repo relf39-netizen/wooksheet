@@ -173,14 +173,18 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    // ปรับปรุงการหา Path บน Windows ให้แม่นยำขึ้น
-    const distPath = path.resolve(__dirname, 'dist');
+    // ใช้ process.cwd() เพื่อให้มั่นใจเรื่องตำแหน่งใน Windows และ IIS
+    const rootPath = process.cwd();
+    const distPath = path.join(rootPath, 'dist');
+    
+    console.log('Root directory:', rootPath);
     console.log('Serving static files from:', distPath);
     
+    // ตั้งค่าให้ Express ส่งไฟล์ Static โดยตรง
     app.use(express.static(distPath));
     
+    // สำหรับ SPA: ถ้าหาไฟล์ไม่เจอ ให้ส่ง index.html กลับไป
     app.get('*', (req, res) => {
-      // ตรวจสอบว่ามีไฟล์ index.html จริงหรือไม่ก่อนส่ง
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
