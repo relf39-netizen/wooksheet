@@ -15,7 +15,8 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
     setError('');
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const apiBase = '/server.cjs';
+      const res = await fetch(`${apiBase}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ citizen_id: citizenId, password })

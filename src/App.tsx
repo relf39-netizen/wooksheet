@@ -28,7 +28,9 @@ export default function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    // ใช้ตำแหน่งปัจจุบันเป็นหลัก และระบุไฟล์จุดเริ่มต้นของเซิร์ฟเวอร์
+    const apiBase = '/server.cjs';
+    fetch(`${apiBase}/api/auth/me`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -40,7 +42,8 @@ export default function App() {
   }, []);
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    const apiBase = '/server.cjs';
+    await fetch(`${apiBase}/api/auth/logout`, { method: 'POST' });
     setUser(null);
     window.location.href = '/';
   };
