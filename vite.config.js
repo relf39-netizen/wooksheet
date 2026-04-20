@@ -9,7 +9,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
+    // กำหนด root ให้เป็นที่ปัจจุบันป้องกันการสแกนเกินขอบเขต
     root: process.cwd(),
+    base: './',
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
@@ -20,12 +22,22 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      outDir: path.resolve(__dirname, 'dist'),
+      outDir: 'dist',
+      assetsDir: 'assets',
       emptyOutDir: true,
+      // บังคับให้ใช้ path แบบสัมพัทธ์ในไฟล์ที่ build ออกมา
+      rollupOptions: {
+        output: {
+          manualChunks: undefined,
+        },
+      },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
+      fs: {
+        // จำกัดพื้นที่การอ่านไฟล์ให้อยู่แค่ในโฟลเดอร์โปรเจกต์เท่านั้น
+        strict: true,
+        allow: [path.resolve(__dirname)]
+      },
       hmr: process.env.DISABLE_HMR !== 'true',
     },
   };
