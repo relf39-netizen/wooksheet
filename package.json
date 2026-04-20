@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node app.js",
     "start": "node app.js",
-    "build": "vite build --base ./"
+    "build": "node build.js"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
