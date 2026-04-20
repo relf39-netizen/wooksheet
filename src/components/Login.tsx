@@ -22,7 +22,6 @@ export default function Login({ onLogin, onNavigate }: { onLogin: (user: any) =>
       const data = await res.json();
       if (data.success) {
         onLogin(data.user);
-        navigate('/');
       } else {
         setError(data.message || 'เข้าสู่ระบบไม่สำเร็จ');
       }

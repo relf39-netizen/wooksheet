@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { 
   FilePlus, 
   List, 
-  List, 
   ShieldCheck, 
   LogOut, 
   BookOpen, 
