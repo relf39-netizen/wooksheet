@@ -1,11 +1,14 @@
-const express = require('express');
-const path = require('path');
-const session = require('express-session');
-const mysql = require('mysql2/promise');
-const bcrypt = require('bcryptjs');
-const cors = require('cors');
-const dotenv = require('dotenv');
+import express from 'express';
+import { createServer as createViteServer } from 'vite';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import session from 'express-session';
+import mysql from 'mysql2/promise';
+import bcrypt from 'bcryptjs';
+import cors from 'cors';
+import dotenv from 'dotenv';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config();
 
 async function startServer() {
@@ -99,9 +102,7 @@ async function startServer() {
     });
   });
 
-  // Admin / Exercise routes omitted for brevity but they follow the same pattern...
-  // (Assuming you want me to keep the logic intact)
-  
+  // Admin Routes
   app.get('/api/admin/teachers', async (req, res) => {
     if (req.session?.user?.role !== 'admin') return res.status(403).send();
     try {
@@ -119,6 +120,7 @@ async function startServer() {
     } catch (error) { res.status(500).send(); }
   });
 
+  // Exercise Routes
   app.get('/api/exercises', async (req, res) => {
     const user = req.session?.user;
     if (!user) return res.status(401).send();
@@ -152,12 +154,20 @@ async function startServer() {
     } catch (error) { res.status(500).send(); }
   });
 
-  // Production static files
-  const distPath = path.join(__dirname, 'dist');
-  app.use(express.static(distPath));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
-  });
+  // Vite middleware setup
+  if (process.env.NODE_ENV !== 'production') {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(__dirname, 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
