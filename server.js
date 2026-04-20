@@ -169,8 +169,9 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  // On Windows IIS/iisnode, we listen to process.env.PORT directly
+  app.listen(process.env.PORT || 3000, () => {
+    console.log(`Server started`);
   });
 }
 
