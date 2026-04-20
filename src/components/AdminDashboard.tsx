@@ -12,14 +12,16 @@ export default function AdminDashboard() {
   }, []);
 
   const fetchTeachers = async () => {
-    const res = await fetch('/api/admin/teachers');
+    const apiBase = '/server.cjs';
+    const res = await fetch(`${apiBase}/api/admin/teachers`);
     const data = await res.json();
     setTeachers(data);
     setLoading(false);
   };
 
   const handleApprove = async (id: number, status: 'active' | 'rejected' | 'pending') => {
-    const res = await fetch('/api/admin/approve', {
+    const apiBase = '/server.cjs';
+    const res = await fetch(`${apiBase}/api/admin/approve`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status })

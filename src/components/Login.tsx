@@ -49,7 +49,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
         <div className="bg-white p-10 rounded-2xl shadow-2xl border border-slate-200">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 ml-1">USER CITIZEN ID</label>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 ml-1">ชื่อผู้ใช้งานหรือหมายเลขประจำตัวประชาชน</label>
               <div className="relative">
                 <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <input

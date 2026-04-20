@@ -111,7 +111,8 @@ export default function Generator({ user }: { user: User }) {
     if (!result) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/exercises', {
+      const apiBase = '/server.cjs';
+      const res = await fetch(`${apiBase}/api/exercises`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

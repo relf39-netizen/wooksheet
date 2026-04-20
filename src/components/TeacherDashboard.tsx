@@ -10,7 +10,8 @@ export default function TeacherDashboard({ user }: { user: User }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('/api/exercises')
+    const apiBase = '/server.cjs';
+    fetch(`${apiBase}/api/exercises`)
       .then(res => res.json())
       .then(data => setExercises(data))
       .catch(console.error);
@@ -18,7 +19,8 @@ export default function TeacherDashboard({ user }: { user: User }) {
 
   const handleUpdateKey = async () => {
     setUpdating(true);
-    await fetch('/api/profile/key', {
+    const apiBase = '/server.cjs';
+    await fetch(`${apiBase}/api/profile/key`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ai_key: aiKey })
@@ -99,9 +101,24 @@ export default function TeacherDashboard({ user }: { user: User }) {
               <h3 className="font-bold uppercase tracking-wider text-sm">การเชื่อมต่อ AI</h3>
             </div>
             
-            <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+            <p className="text-xs text-slate-400 mb-2 leading-relaxed">
               ใส่ API Key เพื่อใช้ระบบอัตโนมัติ ข้อมูลนี้จะถูกเก็บเป็นความลับเฉพาะคุณ
             </p>
+            
+            <div className="mb-6">
+              <a 
+                href="https://aistudio.google.com/app/apikey" 
+                target="_blank" 
+                rel="noreferrer"
+                className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold underline flex items-center gap-1"
+              >
+                วิธีรับ API Key ฟรีจาก Google AI Studio
+                <ChevronRight size={12} />
+              </a>
+              <p className="text-[10px] text-slate-500 mt-2 italic leading-tight">
+                * คู่มือ: ล็อกอินด้วย Gmail > กดปุ่ม "Create API key" > คัดลอกรหัสที่ขึ้นต้นด้วย 'AIz...' มาวางด้านล่าง
+              </p>
+            </div>
 
             <div className="space-y-4">
               <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">

@@ -10,7 +10,8 @@ export default function ExerciseList() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('/api/exercises')
+    const apiBase = '/server.cjs';
+    fetch(`${apiBase}/api/exercises`)
       .then(res => res.json())
       .then(data => {
         setExercises(data);
