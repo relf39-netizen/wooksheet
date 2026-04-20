@@ -25,7 +25,7 @@ async function startServer() {
     queueLimit: 0
   };
 
-  let pool: mysql.Pool;
+  let pool;
   try {
     pool = mysql.createPool(dbConfig);
     console.log('Connected to MySQL pool (Configured via .env)');
@@ -59,7 +59,7 @@ async function startServer() {
         [citizen_id, name, surname, school, position, hashedPassword, 'pending']
       );
       res.json({ success: true, message: 'บันทึกข้อมูลสำเร็จ กรุณารอการอนุมัติจากผู้ดูแลระบบ' });
-    } catch (error: any) {
+    } catch (error) {
       res.status(400).json({ success: false, message: error.code === 'ER_DUP_ENTRY' ? 'เลขประจำตัวประชาชนนี้ถูกใช้งานแล้ว' : 'เกิดข้อผิดพลาดในการลงทะเบียน' });
     }
   });
@@ -69,20 +69,20 @@ async function startServer() {
     
     // Admin login special case
     if (citizen_id === 'admin' && password === 'admin123') {
-      (req as any).session.user = { id: 0, role: 'admin', name: 'System Admin' };
-      return res.json({ success: true, user: (req as any).session.user });
+      req.session.user = { id: 0, role: 'admin', name: 'System Admin' };
+      return res.json({ success: true, user: req.session.user });
     }
 
     try {
-      const [rows]: any = await pool.execute('SELECT * FROM teachers WHERE citizen_id = ?', [citizen_id]);
+      const [rows] = await pool.execute('SELECT * FROM teachers WHERE citizen_id = ?', [citizen_id]);
       const user = rows[0];
 
       if (user && await bcrypt.compare(password, user.password)) {
         if (user.status !== 'active') {
           return res.status(403).json({ success: false, message: 'บัญชีของคุณกำลังรอการตรวจสอบจากผู้ดูแลระบบ' });
         }
-        (req as any).session.user = { id: user.id, role: 'teacher', name: user.name, ai_key: user.ai_key };
-        res.json({ success: true, user: (req as any).session.user });
+        req.session.user = { id: user.id, role: 'teacher', name: user.name, ai_key: user.ai_key };
+        res.json({ success: true, user: req.session.user });
       } else {
         res.status(401).json({ success: false, message: 'เลขประจำตัวหรือรหัสผ่านไม่ถูกต้อง' });
       }
@@ -92,22 +92,22 @@ async function startServer() {
   });
 
   app.get('/api/auth/me', (req, res) => {
-    if ((req as any).session?.user) {
-      res.json({ success: true, user: (req as any).session.user });
+    if (req.session?.user) {
+      res.json({ success: true, user: req.session.user });
     } else {
       res.status(401).json({ success: false });
     }
   });
 
   app.post('/api/auth/logout', (req, res) => {
-    (req as any).session.destroy(() => {
+    req.session.destroy(() => {
       res.json({ success: true });
     });
   });
 
   // Admin Routes
   app.get('/api/admin/teachers', async (req, res) => {
-    if ((req as any).session?.user?.role !== 'admin') return res.status(403).send();
+    if (req.session?.user?.role !== 'admin') return res.status(403).send();
     try {
       const [rows] = await pool.execute('SELECT id, citizen_id, name, surname, school, position, status FROM teachers');
       res.json(rows);
@@ -117,7 +117,7 @@ async function startServer() {
   });
 
   app.post('/api/admin/approve', async (req, res) => {
-    if ((req as any).session?.user?.role !== 'admin') return res.status(403).send();
+    if (req.session?.user?.role !== 'admin') return res.status(403).send();
     const { id, status } = req.body;
     try {
       await pool.execute('UPDATE teachers SET status = ? WHERE id = ?', [status, id]);
@@ -129,7 +129,7 @@ async function startServer() {
 
   // Exercise Routes
   app.get('/api/exercises', async (req, res) => {
-    const user = (req as any).session?.user;
+    const user = req.session?.user;
     if (!user) return res.status(401).send();
     try {
       const [rows] = await pool.execute('SELECT * FROM exercises WHERE teacher_id = ? ORDER BY created_at DESC', [user.id]);
@@ -140,7 +140,7 @@ async function startServer() {
   });
 
   app.post('/api/exercises', async (req, res) => {
-    const user = (req as any).session?.user;
+    const user = req.session?.user;
     if (!user) return res.status(401).send();
     const { title, course, grade, indicators, content } = req.body;
     try {
@@ -155,12 +155,12 @@ async function startServer() {
   });
 
   app.put('/api/profile/key', async (req, res) => {
-    const user = (req as any).session?.user;
+    const user = req.session?.user;
     if (!user) return res.status(401).send();
     const { ai_key } = req.body;
     try {
       await pool.execute('UPDATE teachers SET ai_key = ? WHERE id = ?', [ai_key, user.id]);
-      (req as any).session.user.ai_key = ai_key;
+      req.session.user.ai_key = ai_key;
       res.json({ success: true });
     } catch (error) {
       res.status(500).send();
