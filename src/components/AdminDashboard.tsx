@@ -77,31 +77,38 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
     }
   };
 
+  const pendingCount = teachers.filter(t => t.status === 'pending').length;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <header className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 block">Administrator</span>
-            <h1 className="text-3xl font-bold text-slate-900 mb-1">จัดการระบบส่วนหลัง</h1>
-            <p className="text-slate-500 text-sm">ดูแลสมาชิก ปรับปรุงฐานข้อมูล และตรวจสอบความปลอดภัยของระบบ</p>
+            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 block">ADMINISTRATOR</span>
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">หน้าจัดการระบบระบบ</h1>
+            <p className="text-slate-500 text-xs">ดูแลสมาชิก ปรับปรุงฐานข้อมูล และตรวจสอบความปลอดภัย</p>
           </div>
           
-          <div className="flex bg-slate-100 p-1 rounded-xl">
+          <div className="flex bg-slate-100 p-1 rounded-xl shrink-0">
             <button 
               onClick={() => setActiveTab('members')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'members' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 relative ${activeTab === 'members' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Users size={16} />
               จัดการสมาชิก
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                  {pendingCount}
+                </span>
+              )}
             </button>
             <button 
               onClick={() => setActiveTab('system')}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'system' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Database size={16} />
-              ฐานข้อมูลระบบ
+              จัดการฐานข้อมูล
             </button>
           </div>
         </div>
@@ -129,74 +136,74 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
               </div>
             ) : (
               filteredTeachers.map(t => (
-                <div key={t.id} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-200 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group">
-                  <div className="flex items-center gap-6">
-                    <div className={`w-16 h-16 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-sm ${
+                <div key={t.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-200 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-sm shrink-0 ${
                       t.status === 'active' ? 'bg-green-600 text-white shadow-green-100' : 
-                      t.status === 'rejected' ? 'bg-slate-900 text-white' : 'bg-indigo-500 text-white shadow-indigo-100'
+                      t.status === 'rejected' ? 'bg-slate-900 text-white' : 'bg-amber-500 text-white shadow-amber-100'
                     }`}>
-                      <UserIcon size={28} />
+                      <UserIcon size={20} />
                     </div>
                     <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-bold text-lg text-slate-900 leading-none">{t.name} {t.surname}</h3>
-                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border tracking-widest ${
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-bold text-sm text-slate-900 leading-none">{t.name} {t.surname}</h3>
+                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border tracking-widest ${
                            t.status === 'active' ? 'bg-green-50 text-green-600 border-green-100' : 
-                           t.status === 'rejected' ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-indigo-50 text-indigo-600 border-indigo-100'
+                           t.status === 'rejected' ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-amber-50 text-amber-600 border-amber-100'
                         }`}>
-                          {t.status === 'active' ? 'APPROVED' : t.status === 'rejected' ? 'REJECTED' : 'PENDING REVIEW'}
+                          {t.status === 'active' ? 'อนุมัติแล้ว' : t.status === 'rejected' ? 'ปฏิเสธ' : 'รออนุมัติ'}
                         </span>
                       </div>
-                      <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-slate-500">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-slate-500">
                         <div className="flex items-center gap-1.5">
-                          <School size={14} className="text-slate-400" />
+                          <School size={12} className="text-slate-400" />
                           <span className="font-bold text-slate-700">{t.school}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest leading-none">ID:</span>
+                          <span className="text-[9px] uppercase font-bold text-slate-400 tracking-widest leading-none">เลขบัตร:</span>
                           <span className="font-mono">{t.citizen_id}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 font-bold uppercase text-indigo-600 tracking-tighter">
+                        <div className="flex items-center gap-1.5 font-bold text-indigo-600">
                           <span>{t.position}</span>
                         </div>
-                        <div className={`flex items-center gap-1.5 font-black text-[10px] uppercase border px-2 py-0.5 rounded-full tracking-tighter ${t.role === 'admin' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                          <span>Role: {t.role}</span>
+                        <div className={`flex items-center gap-1.2 font-black text-[9px] uppercase border px-2 py-0.5 rounded-full ${t.role === 'admin' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                          <span>สิทธิ์: {t.role === 'admin' ? 'ผู้บริหารระบบ' : 'คุณครูทั่วไป'}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button 
                       onClick={() => handleRoleChange(t.id, t.role === 'admin' ? 'teacher' : 'admin')}
-                      className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                      className="bg-slate-50 text-[9px] font-bold text-slate-500 uppercase px-2 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
                     >
-                      {t.role === 'admin' ? 'Demote' : 'Promote Admin'}
+                      {t.role === 'admin' ? 'ลดสิทธิ์' : 'เพิ่มเป็นแอดมิน'}
                     </button>
                     {t.status === 'pending' && (
                       <>
                         <button 
                           onClick={() => handleApprove(t.id, 'active')}
-                          className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 uppercase text-xs tracking-widest"
+                          className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 uppercase text-[10px] tracking-widest"
                         >
-                          <UserCheck size={16} />
-                          <span>Approve</span>
+                          <UserCheck size={14} />
+                          <span>อนุมัติ</span>
                         </button>
                         <button 
                           onClick={() => handleApprove(t.id, 'rejected')}
-                          className="bg-white text-slate-500 border border-slate-200 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-900 hover:text-white transition-all uppercase text-xs tracking-widest"
+                          className="bg-white text-slate-500 border border-slate-200 px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-900 hover:text-white transition-all uppercase text-[10px] tracking-widest"
                         >
-                          <UserX size={16} />
-                          <span>Reject</span>
+                          <UserX size={14} />
+                          <span>ปฏิเสธ</span>
                         </button>
                       </>
                     )}
                     {t.status !== 'pending' && (
                       <button 
                         onClick={() => handleApprove(t.id, 'pending')}
-                        className="text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:text-indigo-600 px-4 py-2 border border-transparent hover:border-indigo-100 rounded-lg transition-all"
+                        className="text-slate-400 text-[9px] font-bold uppercase tracking-widest hover:text-indigo-600 px-3 py-1.5 border border-transparent hover:border-indigo-100 rounded-lg transition-all"
                       >
-                        Reset Review
+                        Reset / ตรวจสอบใหม่
                       </button>
                     )}
                   </div>
