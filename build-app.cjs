@@ -4,21 +4,19 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 async function runBuild() {
-  console.log('--- STARTING DYNAMIC BUILD (CJS with ESM Bridge) ---');
+  console.log('--- STARTING STABLE BUILD (Tailwind v3 + Vite 5) ---');
   
   try {
-    // ใช้ Dynamic Import เพื่อโหลดโมดูลที่เป็น ESM เท่านั้น
     const { build } = await import('vite');
     const { default: react } = await import('@vitejs/plugin-react');
-    const { default: tailwindcss } = await import('@tailwindcss/vite');
 
     await build({
       root: process.cwd(),
       base: './',
       configFile: false, // ข้ามการโหลดไฟล์อัตโนมัติเพื่อเลี่ยงปัญหา Permission
       plugins: [
-        react(),
-        tailwindcss()
+        react()
+        // ใน Tailwind v3 ระบบจะเรียกผ่าน PostCSS อัตโนมัติถ้ามีไฟล์ postcss.config.js
       ],
       define: {
         'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY || ''),
