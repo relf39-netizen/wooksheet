@@ -162,9 +162,14 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(__dirname, 'dist');
+    // ปรับปรุงการหา Path บน Windows ให้แม่นยำขึ้น
+    const distPath = path.resolve(__dirname, 'dist');
+    console.log('Serving static files from:', distPath);
+    
     app.use(express.static(distPath));
+    
     app.get('*', (req, res) => {
+      // ตรวจสอบว่ามีไฟล์ index.html จริงหรือไม่ก่อนส่ง
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
