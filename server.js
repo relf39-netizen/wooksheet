@@ -44,7 +44,13 @@ async function startServer() {
 
   app.use(express.json());
   app.use(cors());
-  app.set('trust proxy', 1); // ช่วยให้ session ทำงานได้ดีขึ้นบนเซิร์ฟเวอร์ที่มี Proxy (เช่น Plesk)
+  app.set('trust proxy', 1);
+
+  // เพิ่ม Log เพื่อดู Request ที่เข้ามา
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+  });
   
   app.use(session({
     secret: 'edugen-secret-key-123',
