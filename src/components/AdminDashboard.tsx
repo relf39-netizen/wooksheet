@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
-import { UserCheck, UserX, Clock, Search, School, User as UserIcon } from 'lucide-react';
+import { UserCheck, UserX, Clock, Search, School, User as UserIcon, Database, Users, ShieldAlert } from 'lucide-react';
 import { Teacher } from '../types';
 
 export default function AdminDashboard() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [activeTab, setActiveTab] = useState<'members' | 'system'>('members');
+  const [syncing, setSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTeachers();
@@ -38,103 +41,188 @@ export default function AdminDashboard() {
     t.citizen_id.includes(filter)
   );
 
+  const handleDbSync = async () => {
+    setSyncing(true);
+    setSyncStatus(null);
+    try {
+      const apiBase = '/server.cjs';
+      const res = await fetch(`${apiBase}/api/admin/db-sync`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setSyncStatus('ปรับปรุงฐานข้อมูลเรียบร้อยแล้ว');
+      } else {
+        setSyncStatus('เกิดข้อผิดพลาด: ' + data.message);
+      }
+    } catch (err) {
+      setSyncStatus('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <header className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
-        <div>
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 block">Management</span>
-          <h1 className="text-3xl font-bold text-slate-900 mb-1">จัดการสมาชิกและการอนุมัติ</h1>
-          <p className="text-slate-500 text-sm">ตรวจสอบและอนุมัติคุณครูเพื่อเข้าใช้งานระบบสร้างแบบฝึกหัด</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 block">Administrator</span>
+            <h1 className="text-3xl font-bold text-slate-900 mb-1">จัดการระบบส่วนหลัง</h1>
+            <p className="text-slate-500 text-sm">ดูแลสมาชิก ปรับปรุงฐานข้อมูล และตรวจสอบความปลอดภัยของระบบ</p>
+          </div>
+          
+          <div className="flex bg-slate-100 p-1 rounded-xl">
+            <button 
+              onClick={() => setActiveTab('members')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'members' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <Users size={16} />
+              จัดการสมาชิก
+            </button>
+            <button 
+              onClick={() => setActiveTab('system')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'system' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <Database size={16} />
+              ฐานข้อมูลระบบ
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-        <Search className="text-slate-400 ml-2" size={20} />
-        <input 
-          type="text" 
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          placeholder="ค้นหาตามชื่อ, โรงเรียน, หรือเลขบัตรประชาชน..."
-          className="flex-1 bg-transparent border-none outline-none py-2 text-sm placeholder:text-slate-300"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
-        {loading ? (
-          <div className="text-center py-20 text-slate-400 animate-pulse font-bold tracking-widest uppercase text-xs">กำลังโหลดข้อมูล...</div>
-        ) : filteredTeachers.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400 font-bold uppercase tracking-widest text-xs">
-            ไม่พบข้อมูลสมาชิก
+      {activeTab === 'members' ? (
+        <>
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+            <Search className="text-slate-400 ml-2" size={20} />
+            <input 
+              type="text" 
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="ค้นหาตามชื่อ, โรงเรียน, หรือเลขบัตรประชาชน..."
+              className="flex-1 bg-transparent border-none outline-none py-2 text-sm placeholder:text-slate-300"
+            />
           </div>
-        ) : (
-          filteredTeachers.map(t => (
-            <div key={t.id} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-200 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group">
-              <div className="flex items-center gap-6">
-                <div className={`w-16 h-16 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-sm ${
-                  t.status === 'active' ? 'bg-green-600 text-white shadow-green-100' : 
-                  t.status === 'rejected' ? 'bg-slate-900 text-white' : 'bg-indigo-500 text-white shadow-indigo-100'
-                }`}>
-                  <UserIcon size={28} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-bold text-lg text-slate-900 leading-none">{t.name} {t.surname}</h3>
-                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border tracking-widest ${
-                       t.status === 'active' ? 'bg-green-50 text-green-600 border-green-100' : 
-                       t.status === 'rejected' ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-indigo-50 text-indigo-600 border-indigo-100'
-                    }`}>
-                      {t.status === 'active' ? 'APPROVED' : t.status === 'rejected' ? 'REJECTED' : 'PENDING REVIEW'}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-slate-500">
-                    <div className="flex items-center gap-1.5">
-                      <School size={14} className="text-slate-400" />
-                      <span className="font-bold text-slate-700">{t.school}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest leading-none">ID:</span>
-                      <span className="font-mono">{t.citizen_id}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 font-bold uppercase text-indigo-600 tracking-tighter">
-                      <span>{t.position}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-3">
-                {t.status === 'pending' && (
-                  <>
-                    <button 
-                      onClick={() => handleApprove(t.id, 'active')}
-                      className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 uppercase text-xs tracking-widest"
-                    >
-                      <UserCheck size={16} />
-                      <span>Approve</span>
-                    </button>
-                    <button 
-                      onClick={() => handleApprove(t.id, 'rejected')}
-                      className="bg-white text-slate-500 border border-slate-200 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-900 hover:text-white transition-all uppercase text-xs tracking-widest"
-                    >
-                      <UserX size={16} />
-                      <span>Reject</span>
-                    </button>
-                  </>
-                )}
-                {t.status !== 'pending' && (
-                  <button 
-                    onClick={() => handleApprove(t.id, 'pending')}
-                    className="text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:text-indigo-600 px-4 py-2 border border-transparent hover:border-indigo-100 rounded-lg transition-all"
-                  >
-                    Reset Review
-                  </button>
-                )}
+          <div className="grid grid-cols-1 gap-6">
+            {loading ? (
+              <div className="text-center py-20 text-slate-400 animate-pulse font-bold tracking-widest uppercase text-xs">กำลังโหลดข้อมูล...</div>
+            ) : filteredTeachers.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400 font-bold uppercase tracking-widest text-xs">
+                ไม่พบข้อมูลสมาชิก
+              </div>
+            ) : (
+              filteredTeachers.map(t => (
+                <div key={t.id} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-200 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group">
+                  <div className="flex items-center gap-6">
+                    <div className={`w-16 h-16 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 shadow-sm ${
+                      t.status === 'active' ? 'bg-green-600 text-white shadow-green-100' : 
+                      t.status === 'rejected' ? 'bg-slate-900 text-white' : 'bg-indigo-500 text-white shadow-indigo-100'
+                    }`}>
+                      <UserIcon size={28} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-bold text-lg text-slate-900 leading-none">{t.name} {t.surname}</h3>
+                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border tracking-widest ${
+                           t.status === 'active' ? 'bg-green-50 text-green-600 border-green-100' : 
+                           t.status === 'rejected' ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-indigo-50 text-indigo-600 border-indigo-100'
+                        }`}>
+                          {t.status === 'active' ? 'APPROVED' : t.status === 'rejected' ? 'REJECTED' : 'PENDING REVIEW'}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-slate-500">
+                        <div className="flex items-center gap-1.5">
+                          <School size={14} className="text-slate-400" />
+                          <span className="font-bold text-slate-700">{t.school}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest leading-none">ID:</span>
+                          <span className="font-mono">{t.citizen_id}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 font-bold uppercase text-indigo-600 tracking-tighter">
+                          <span>{t.position}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {t.status === 'pending' && (
+                      <>
+                        <button 
+                          onClick={() => handleApprove(t.id, 'active')}
+                          className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 uppercase text-xs tracking-widest"
+                        >
+                          <UserCheck size={16} />
+                          <span>Approve</span>
+                        </button>
+                        <button 
+                          onClick={() => handleApprove(t.id, 'rejected')}
+                          className="bg-white text-slate-500 border border-slate-200 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-900 hover:text-white transition-all uppercase text-xs tracking-widest"
+                        >
+                          <UserX size={16} />
+                          <span>Reject</span>
+                        </button>
+                      </>
+                    )}
+                    {t.status !== 'pending' && (
+                      <button 
+                        onClick={() => handleApprove(t.id, 'pending')}
+                        className="text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:text-indigo-600 px-4 py-2 border border-transparent hover:border-indigo-100 rounded-lg transition-all"
+                      >
+                        Reset Review
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="space-y-6 max-w-4xl">
+          <div className="bg-white p-10 rounded-3xl border border-slate-200 shadow-sm">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center">
+                <Database size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">จัดการโครงสร้างฐานข้อมูล</h3>
+                <p className="text-slate-500 text-sm">ตรวจสอบและอัปเดตตารางฐานข้อมูลให้เป็นเวอร์ชันล่าสุด</p>
               </div>
             </div>
-          ))
-        )}
-      </div>
+            
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-8">
+              <div className="flex items-start gap-4">
+                <ShieldAlert className="text-amber-500 shrink-0" size={20} />
+                <div className="text-sm text-slate-600 leading-relaxed">
+                  <p className="font-bold text-slate-900 mb-1">คำแนะนำการใช้งาน:</p>
+                  ปุ่มนี้จะทำการ "Sync" ตารางที่จำเป็นทั้งหมดโดยอัตโนมัติ หากมีฟีเจอร์ใหม่หรือตารางที่ขาดหายไป 
+                  ระบบจะทำการสร้าง (CREATE) ให้โดยไม่ลบข้อมูลเดิมที่มีอยู่
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleDbSync}
+              disabled={syncing}
+              className={`w-full md:w-auto min-w-[200px] px-8 py-4 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 shadow-lg ${syncing ? 'bg-slate-400' : 'bg-slate-900 hover:bg-slate-800 shadow-slate-200'}`}
+            >
+              <Database size={20} />
+              {syncing ? 'กำลังปรับปรุงฐานข้อมูล...' : 'อัปเดต / ปรับปรุงฐานข้อมูล'}
+            </button>
+            
+            {syncStatus && (
+              <div className={`mt-6 p-4 rounded-xl text-sm font-bold flex items-center gap-3 ${syncStatus.includes('สำเร็จ') ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-700 border border-red-100'}`}>
+                <div className={`w-2 h-2 rounded-full ${syncStatus.includes('สำเร็จ') ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                {syncStatus}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
   );
 }

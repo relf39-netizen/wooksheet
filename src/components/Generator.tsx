@@ -13,6 +13,17 @@ const EXERCISE_TYPES = [
 
 const GRADES = ['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6', 'ม.1', 'ม.2', 'ม.3'];
 
+const CORE_SUBJECTS = [
+  'ภาษาไทย',
+  'คณิตศาสตร์',
+  'วิทยาศาสตร์และเทคโนโลยี',
+  'สังคมศึกษา ศาสนา และวัฒนธรรม',
+  'สุขศึกษาและพลศึกษา',
+  'ศิลปะ',
+  'การงานอาชีพ',
+  'ภาษาต่างประเทศ (ภาษาอังกฤษ)'
+];
+
 export default function Generator({ user, onNavigate }: { user: User, onNavigate: (page: string) => void }) {
   const [formData, setFormData] = useState({
     title: '',
@@ -176,12 +187,18 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 ml-1">รายวิชา</label>
-                  <input 
-                    value={formData.course}
-                    onChange={(e) => setFormData({...formData, course: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="ระบุวิชา"
-                  />
+                  <div className="relative">
+                    <input 
+                      list="subjects"
+                      value={formData.course}
+                      onChange={(e) => setFormData({...formData, course: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="เลือกหรือระบุวิชา"
+                    />
+                    <datalist id="subjects">
+                      {CORE_SUBJECTS.map(s => <option key={s} value={s} />)}
+                    </datalist>
+                  </div>
                 </div>
               </div>
 
