@@ -110,7 +110,6 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
     title: '',
     course: '',
     grade: 'ป.1',
-    indicators: '',
     type: 'multiple_choice' as ExerciseType,
     count: 5,
     topic: ''
@@ -133,14 +132,14 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
       const ai = new GoogleGenAI({ apiKey: user.ai_key });
       
       const systemInstruction = `You are a professional educational content creator for Thai ministry of education. 
-      Generate a set of exercises in Thai language based on the Thai curriculum standards.
+      Generate a set of exercises in Thai language strictly based on the Thai Core Curriculum Standards (หลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน).
       The output must be a valid JSON object matching the requested schema.
       Current Date: ${new Date().toISOString()}`;
 
       const prompt = `สร้างแบบฝึกหัดเรื่อง: "${formData.topic}" 
       สำหรับวิชา: ${formData.course} 
       ระดับชั้น: ${formData.grade} 
-      ตัวชี้วัด/มาตรฐาน: ${formData.indicators}
+      โดยให้อ้างอิงมาตรฐานและตัวชี้วัดตามหลักสูตรแกนกลางสถานศึกษาที่เหมาะสมกับระดับชั้นโดยอัตโนมัติ
       รูปแบบ: ${formData.type}
       จำนวนข้อ: ${formData.count} ข้อ
       
@@ -215,7 +214,7 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
           title: result.title || formData.title,
           course: formData.course,
           grade: formData.grade,
-          indicators: formData.indicators,
+          indicators: 'อ้างอิงหลักสูตรแกนกลางอัตโนมัติ',
           content: result
         })
       });
@@ -349,16 +348,6 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
                     </datalist>
                   </div>
                 </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 ml-1">ตัวชี้วัดตามหลักสูตรแกนกลาง</label>
-                <textarea 
-                  value={formData.indicators}
-                  onChange={(e) => setFormData({...formData, indicators: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 h-20 resize-none"
-                  placeholder="ระบุรหัสตัวชี้วัด (ท 1.1 ป.6/1...)"
-                />
               </div>
 
               <div>
