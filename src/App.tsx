@@ -7,7 +7,9 @@ import {
   BookOpen, 
   Library,
   ChevronRight,
-  Menu
+  Menu,
+  Users,
+  Database
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User } from './types';
