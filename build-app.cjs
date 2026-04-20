@@ -12,11 +12,10 @@ async function runBuild() {
 
     await build({
       root: process.cwd(),
-      base: './',
+      base: '/', 
       configFile: false, // ข้ามการโหลดไฟล์อัตโนมัติเพื่อเลี่ยงปัญหา Permission
       plugins: [
         react()
-        // ใน Tailwind v3 ระบบจะเรียกผ่าน PostCSS อัตโนมัติถ้ามีไฟล์ postcss.config.js
       ],
       define: {
         'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY || ''),
@@ -28,7 +27,7 @@ async function runBuild() {
       },
       build: {
         outDir: 'dist',
-        assetsDir: 'assets',
+        assetsDir: '', 
         emptyOutDir: true,
         minify: 'esbuild',
         reportCompressedSize: false,
