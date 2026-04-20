@@ -7,7 +7,7 @@ export default function Register({ onNavigate }: { onNavigate: (page: string) =>
     name: '',
     surname: '',
     school: '',
-    position: '',
+    position: 'ครูอัตราจ้าง',
     password: '',
     confirmPassword: ''
   });
@@ -133,14 +133,26 @@ export default function Register({ onNavigate }: { onNavigate: (page: string) =>
                   required
                 />
 
-                <InputGroup 
-                  label="ตำแหน่ง" 
-                  icon={<Book size={18} />} 
-                  value={formData.position}
-                  onChange={(v) => setFormData({...formData, position: v})}
-                  placeholder="เช่น ครูผู้ช่วย, ครูชำนาญการ"
-                  required
-                />
+                <div>
+                  <label className="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1.5 ml-1">ตำแหน่ง</label>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Book size={18} /></div>
+                    <select
+                      required
+                      value={formData.position}
+                      onChange={(e) => setFormData({...formData, position: e.target.value})}
+                      className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none text-sm appearance-none"
+                    >
+                      <option value="ครูอัตราจ้าง">ครูอัตราจ้าง</option>
+                      <option value="พนักงานราชการ">พนักงานราชการ</option>
+                      <option value="ครูผู้ช่วย">ครูผู้ช่วย</option>
+                      <option value="ครู คศ.1">ครู คศ.1</option>
+                      <option value="ครู คศ.2">ครู คศ.2</option>
+                      <option value="ครู คศ.3">ครู คศ.3</option>
+                      <option value="ครู คศ.4">ครู คศ.4</option>
+                    </select>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <InputGroup 

@@ -78,7 +78,11 @@ async function startServer() {
       );
       res.json({ success: true, message: 'บันทึกข้อมูลสำเร็จ กรุณารอการอนุมัติจากผู้ดูแลระบบ' });
     } catch (error) {
-      res.status(400).json({ success: false, message: error.code === 'ER_DUP_ENTRY' ? 'เลขประจำตัวประชาชนนี้ถูกใช้งานแล้ว' : 'เกิดข้อผิดพลาดในการลงทะเบียน' });
+      console.error('Registration Error:', error);
+      res.status(400).json({ 
+        success: false, 
+        message: error.code === 'ER_DUP_ENTRY' ? 'เลขประจำตัวประชาชนนี้ถูกใช้งานแล้ว' : `เกิดข้อผิดพลาดในการลงทะเบียน: ${error.message}` 
+      });
     }
   });
 
