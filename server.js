@@ -196,8 +196,13 @@ async function startServer() {
     try {
       await pool.execute('UPDATE teachers SET ai_key = ? WHERE id = ?', [ai_key, user.id]);
       req.session.user.ai_key = ai_key;
-      res.json({ success: true });
-    } catch (error) { res.status(500).send(); }
+      req.session.save(() => {
+        res.json({ success: true });
+      });
+    } catch (error) { 
+      console.error('Update key error:', error);
+      res.status(500).send(); 
+    }
   });
 
   // Vite middleware setup

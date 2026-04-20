@@ -72,13 +72,15 @@ export default function App() {
       return <Login onLogin={(u) => { setUser(u); navigateTo(u.role === 'admin' ? 'admin' : 'home'); }} onNavigate={navigateTo} />;
     }
 
+    const onUserUpdate = (updatedUser: User) => setUser(updatedUser);
+
     if (user.role === 'admin') return <AdminDashboard />;
 
     switch (currentPage) {
       case 'generate': return <Generator user={user} onNavigate={navigateTo} />;
       case 'history': return <ExerciseList onNavigate={navigateTo} />;
       case 'print': return <PrintView exerciseId={activeParam} onNavigate={navigateTo} />;
-      default: return <TeacherDashboard user={user} onNavigate={navigateTo} />;
+      default: return <TeacherDashboard user={user} onNavigate={navigateTo} onUserUpdate={onUserUpdate} />;
     }
   };
 

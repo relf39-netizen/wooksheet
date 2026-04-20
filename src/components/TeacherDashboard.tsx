@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Key, PlusCircle, History, UserCheck, AlertCircle, FileText, ChevronRight } from 'lucide-react';
 import { User, Exercise } from '../types';
 
-export default function TeacherDashboard({ user, onNavigate }: { user: User, onNavigate: (page: string, param?: string) => void }) {
+export default function TeacherDashboard({ user, onNavigate, onUserUpdate }: { user: User, onNavigate: (page: string, param?: string) => void, onUserUpdate: (updatedUser: User) => void }) {
   const [aiKey, setAiKey] = useState(user.ai_key || '');
   const [updating, setUpdating] = useState(false);
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -18,13 +18,20 @@ export default function TeacherDashboard({ user, onNavigate }: { user: User, onN
   const handleUpdateKey = async () => {
     setUpdating(true);
     const apiBase = '/server.cjs';
-    await fetch(`${apiBase}/api/profile/key`, {
+    const res = await fetch(`${apiBase}/api/profile/key`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ai_key: aiKey })
     });
+    
+    if (res.ok) {
+      onUserUpdate({ ...user, ai_key: aiKey });
+      alert('บันทึก API Key สำเร็จ');
+    } else {
+      alert('เกิดข้อผิดพลาดในการบันทึก');
+    }
+    
     setUpdating(false);
-    alert('บันทึก API Key สำเร็จ');
   };
 
   return (
