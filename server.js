@@ -7,6 +7,7 @@ import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import fs from 'fs/promises';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config();
@@ -93,6 +94,16 @@ async function startServer() {
       res.json({ success: true, user: req.session.user });
     } else {
       res.status(401).json({ success: false });
+    }
+  });
+
+  app.get('/debug/files', async (req, res) => {
+    try {
+      const distPath = path.resolve(__dirname, 'dist');
+      const files = await fs.readdir(distPath);
+      res.json({ distPath, files });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
     }
   });
 
