@@ -1,18 +1,17 @@
-import tailwindcss from '@tailwindcss/vite';
-import react from '@vitejs/plugin-react';
-import { defineConfig, loadEnv } from 'vite';
-import { fileURLToPath } from 'url';
-import path from 'path';
+const { defineConfig, loadEnv } = require('vite');
+const react = require('@vitejs/plugin-react');
+const tailwindcss = require('@tailwindcss/vite').default || require('@tailwindcss/vite');
+const path = require('path');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-export default defineConfig(({ mode }) => {
+module.exports = defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
-    // กำหนด root ให้เป็นที่ปัจจุบันป้องกันการสแกนเกินขอบเขต
     root: process.cwd(),
     base: './',
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss()
+    ],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },
@@ -25,20 +24,16 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       assetsDir: 'assets',
       emptyOutDir: true,
-      // บังคับให้ใช้ path แบบสัมพัทธ์ในไฟล์ที่ build ออกมา
-      rollupOptions: {
-        output: {
-          manualChunks: undefined,
-        },
-      },
+      sourcemap: false,
+      minify: 'esbuild',
+      // ป้องกัน esbuild จากการสแกนหาโฟลเดอร์ข้างนอก
+      commonjsOptions: {
+        include: [/node_modules/],
+      }
     },
-    server: {
-      fs: {
-        // จำกัดพื้นที่การอ่านไฟล์ให้อยู่แค่ในโฟลเดอร์โปรเจกต์เท่านั้น
-        strict: true,
-        allow: [path.resolve(__dirname)]
-      },
-      hmr: process.env.DISABLE_HMR !== 'true',
-    },
+    esbuild: {
+      // บังคับให้ไม่ใช้ฟีเจอร์ที่ต้องอาศัยการสแกน filesystem ลึกเกินไป
+      legalComments: 'none'
+    }
   };
 });

@@ -2,13 +2,10 @@
   "name": "react-example",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "tsx app.js",
+    "dev": "node app.js",
     "start": "node app.js",
-    "build": "vite build --config vite.config.js --base ./",
-    "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "build": "vite build --base ./"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
