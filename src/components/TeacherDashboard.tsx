@@ -116,7 +116,7 @@ export default function TeacherDashboard({ user }: { user: User }) {
                 <ChevronRight size={12} />
               </a>
               <p className="text-[10px] text-slate-500 mt-2 italic leading-tight">
-                * คู่มือ: ล็อกอินด้วย Gmail > กดปุ่ม "Create API key" > คัดลอกรหัสที่ขึ้นต้นด้วย 'AIz...' มาวางด้านล่าง
+                * คู่มือ: ล็อกอินด้วย Gmail → กดปุ่ม "Create API key" → คัดลอกรหัสที่ขึ้นต้นด้วย 'AIz...' มาวางด้านล่าง
               </p>
             </div>
 
