@@ -107,7 +107,13 @@ async function startServer() {
           if (user.status !== 'active') {
             return res.status(403).json({ success: false, message: 'บัญชีของคุณกำลังรอการตรวจสอบจากผู้ดูแลระบบ' });
           }
-          req.session.user = { id: user.id, role: 'teacher', name: user.name, ai_key: user.ai_key, school: user.school };
+          req.session.user = { 
+            id: user.id, 
+            role: user.role || 'teacher', 
+            name: user.name, 
+            ai_key: user.ai_key, 
+            school: user.school 
+          };
           console.log('Login successful');
           res.json({ success: true, user: req.session.user });
         } else {
@@ -152,8 +158,17 @@ async function startServer() {
   app.get('/api/admin/teachers', async (req, res) => {
     if (req.session?.user?.role !== 'admin') return res.status(403).send();
     try {
-      const [rows] = await pool.execute('SELECT id, citizen_id, name, surname, school, position, status FROM teachers');
+      const [rows] = await pool.execute('SELECT id, citizen_id, name, surname, school, position, status, role FROM teachers');
       res.json(rows);
+    } catch (error) { res.status(500).send(); }
+  });
+
+  app.post('/api/admin/change-role', async (req, res) => {
+    if (req.session?.user?.role !== 'admin') return res.status(403).send();
+    const { id, role } = req.body;
+    try {
+      await pool.execute('UPDATE teachers SET role = ? WHERE id = ?', [role, id]);
+      res.json({ success: true });
     } catch (error) { res.status(500).send(); }
   });
 
@@ -180,10 +195,18 @@ async function startServer() {
           position VARCHAR(100),
           password VARCHAR(255) NOT NULL,
           ai_key VARCHAR(255),
+          role ENUM('teacher', 'admin') DEFAULT 'teacher',
           status ENUM('pending', 'active', 'rejected') DEFAULT 'pending',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
+
+      // Migrating existing table to add role column if missing
+      try {
+        await pool.execute('ALTER TABLE teachers ADD COLUMN role ENUM(\'teacher\', \'admin\') DEFAULT \'teacher\'');
+      } catch (e) {
+        // Column might already exist
+      }
 
       await pool.execute(`
         CREATE TABLE IF NOT EXISTS exercises (

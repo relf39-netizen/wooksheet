@@ -39,6 +39,19 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
     }
   };
 
+  const handleRoleChange = async (id: number, role: 'teacher' | 'admin') => {
+    const apiBase = '/server.cjs';
+    const res = await fetch(`${apiBase}/api/admin/change-role`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, role })
+    });
+    const data = await res.json();
+    if (data.success) {
+      fetchTeachers();
+    }
+  };
+
   const filteredTeachers = teachers.filter(t => 
     t.name.toLowerCase().includes(filter.toLowerCase()) || 
     t.school.toLowerCase().includes(filter.toLowerCase()) ||
@@ -146,11 +159,20 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
                         <div className="flex items-center gap-1.5 font-bold uppercase text-indigo-600 tracking-tighter">
                           <span>{t.position}</span>
                         </div>
+                        <div className={`flex items-center gap-1.5 font-black text-[10px] uppercase border px-2 py-0.5 rounded-full tracking-tighter ${t.role === 'admin' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                          <span>Role: {t.role}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => handleRoleChange(t.id, t.role === 'admin' ? 'teacher' : 'admin')}
+                      className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                    >
+                      {t.role === 'admin' ? 'Demote' : 'Promote Admin'}
+                    </button>
                     {t.status === 'pending' && (
                       <>
                         <button 

@@ -14,6 +14,7 @@ export interface Teacher {
   school: string;
   position: string;
   status: 'pending' | 'active' | 'rejected';
+  role: 'teacher' | 'admin';
 }
 
 export interface Exercise {
