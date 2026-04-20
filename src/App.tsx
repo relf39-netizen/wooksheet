@@ -74,7 +74,12 @@ export default function App() {
 
     const onUserUpdate = (updatedUser: User) => setUser(updatedUser);
 
-    if (user.role === 'admin') return <AdminDashboard />;
+    if (user.role === 'admin') {
+      switch (currentPage) {
+        case 'admin_db': return <AdminDashboard initialTab="system" />;
+        default: return <AdminDashboard initialTab="members" />;
+      }
+    }
 
     switch (currentPage) {
       case 'generate': return <Generator user={user} onNavigate={navigateTo} />;
@@ -120,7 +125,10 @@ export default function App() {
                   </>
                 )}
                 {user.role === 'admin' && (
-                  <NavLink active={currentPage === 'admin'} onClick={() => navigateTo('admin')} icon={<ShieldCheck size={18} />} label="อนุมัติสมาชิก" isOpen={isSidebarOpen} />
+                  <>
+                    <NavLink active={currentPage === 'admin'} onClick={() => navigateTo('admin')} icon={<Users size={18} />} label="อนุมัติสมาชิก" isOpen={isSidebarOpen} />
+                    <NavLink active={currentPage === 'admin_db'} onClick={() => navigateTo('admin_db')} icon={<Database size={18} />} label="จัดการฐานข้อมูล" isOpen={isSidebarOpen} />
+                  </>
                 )}
               </nav>
 

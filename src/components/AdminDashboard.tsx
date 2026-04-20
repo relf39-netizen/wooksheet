@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react';
 import { UserCheck, UserX, Clock, Search, School, User as UserIcon, Database, Users, ShieldAlert } from 'lucide-react';
 import { Teacher } from '../types';
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ initialTab = 'members' }: { initialTab?: 'members' | 'system' }) {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
-  const [activeTab, setActiveTab] = useState<'members' | 'system'>('members');
+  const [activeTab, setActiveTab] = useState<'members' | 'system'>(initialTab);
   const [syncing, setSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   useEffect(() => {
     fetchTeachers();
