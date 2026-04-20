@@ -189,7 +189,7 @@ async function startServer() {
     } catch (error) { res.status(500).send(); }
   });
 
-  app.put('/api/profile/key', async (req, res) => {
+  app.post('/api/profile/key', async (req, res) => {
     const user = req.session?.user;
     if (!user) return res.status(401).send();
     const { ai_key } = req.body;
