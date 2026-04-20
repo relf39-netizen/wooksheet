@@ -84,20 +84,38 @@ async function startServer() {
 
   app.post('/api/auth/login', async (req, res) => {
     const { citizen_id, password } = req.body;
+    console.log(`Login attempt for: ${citizen_id}`);
+    
+    if (!citizen_id || !password) {
+      return res.status(400).json({ success: false, message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
+    }
+
     if (citizen_id === 'admin' && password === 'admin123') {
       req.session.user = { id: 0, role: 'admin', name: 'System Admin' };
       return res.json({ success: true, user: req.session.user });
     }
+    
     try {
+      console.log('Querying database for user...');
       const [rows] = await pool.execute('SELECT * FROM teachers WHERE citizen_id = ?', [citizen_id]);
       const user = rows[0];
-      if (user && await bcrypt.compare(password, user.password)) {
-        if (user.status !== 'active') {
-          return res.status(403).json({ success: false, message: 'บัญชีของคุณกำลังรอการตรวจสอบจากผู้ดูแลระบบ' });
+      
+      if (user) {
+        console.log('User found, comparing password...');
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (isMatch) {
+          if (user.status !== 'active') {
+            return res.status(403).json({ success: false, message: 'บัญชีของคุณกำลังรอการตรวจสอบจากผู้ดูแลระบบ' });
+          }
+          req.session.user = { id: user.id, role: 'teacher', name: user.name, ai_key: user.ai_key, school: user.school };
+          console.log('Login successful');
+          res.json({ success: true, user: req.session.user });
+        } else {
+          console.log('Password mismatch');
+          res.status(401).json({ success: false, message: 'เลขประจำตัวหรือรหัสผ่านไม่ถูกต้อง' });
         }
-        req.session.user = { id: user.id, role: 'teacher', name: user.name, ai_key: user.ai_key, school: user.school };
-        res.json({ success: true, user: req.session.user });
       } else {
+        console.log('User not found');
         res.status(401).json({ success: false, message: 'เลขประจำตัวหรือรหัสผ่านไม่ถูกต้อง' });
       }
     } catch (error) {
