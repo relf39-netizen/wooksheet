@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Printer, ChevronLeft, Loader2, Wand2, Type, CheckSquare, Layers, FileText } from 'lucide-react';
+import { Sparkles, Printer, ChevronLeft, Loader2, Wand2, Type, CheckSquare, Layers, FileText, Settings, Type as FontType } from 'lucide-react';
 import { User, ExerciseType } from '../types';
 import { GoogleGenAI, Type as GeminiType } from "@google/genai";
 
@@ -12,29 +12,39 @@ const EXERCISE_TYPES = [
   { id: 'image_sentence', label: 'แบบแต่งประโยคจากภาพ', icon: <Sparkles size={18} /> },
 ];
 
-function ExerciseRender({ result, exerciseType, sectionIdx }: { result: any, exerciseType: string, sectionIdx?: number }) {
+interface FontSettings {
+  title: number;
+  indicators: number;
+  description: number;
+  question: number;
+  option: number;
+}
+
+function ExerciseRender({ result, exerciseType, sectionIdx, fonts }: { result: any, exerciseType: string, sectionIdx?: number, fonts?: FontSettings }) {
+  const f = fonts || { title: 18, indicators: 12, description: 14, question: 16, option: 16 };
+  
   return (
     <div className="mb-12 last:mb-0">
       <div className="text-center border-b border-black pb-4 mb-6">
-        <h3 className="text-[18pt] font-bold">
+        <h3 className="font-bold" style={{ fontSize: `${f.title}pt` }}>
           {sectionIdx && <span>ตอนที่ {sectionIdx}: </span>}
           {result.title}
         </h3>
         {result.indicators && (
-          <div className="text-[12pt] mt-1 text-slate-500 font-bold uppercase tracking-tight italic">
+          <div className="mt-1 text-slate-500 font-bold uppercase tracking-tight italic" style={{ fontSize: `${f.indicators}pt` }}>
             มาตรฐาน/ตัวชี้วัด: {result.indicators}
           </div>
         )}
       </div>
       
       <div className="mb-6 bg-slate-50 p-4 border-l-4 border-black">
-        <p className="text-[14pt] font-bold leading-relaxed">{result.description}</p>
+        <p className="font-bold leading-relaxed" style={{ fontSize: `${f.description}pt` }}>{result.description}</p>
       </div>
 
       <div className="space-y-8">
         {result.items.map((item: any, idx: number) => (
           <div key={idx} className="space-y-4">
-            <div className="text-[16pt] font-bold leading-relaxed flex gap-3">
+            <div className="font-bold leading-relaxed flex gap-3" style={{ fontSize: `${f.question}pt` }}>
               <span className="shrink-0">{idx + 1}.</span>
               <div className="flex-1">
                 {exerciseType === 'matching' ? (
@@ -51,8 +61,8 @@ function ExerciseRender({ result, exerciseType, sectionIdx }: { result: any, exe
             {exerciseType === 'multiple_choice' && item.options && (
               <div className="grid grid-cols-2 gap-x-12 gap-y-3 pl-8">
                 {item.options.map((opt: string, oIdx: number) => (
-                  <div key={oIdx} className="flex items-center gap-3 italic">
-                    <div className="w-7 h-7 rounded-full border border-black flex items-center justify-center text-[12pt] font-bold shrink-0">
+                  <div key={oIdx} className="flex items-center gap-3 italic" style={{ fontSize: `${f.option}pt` }}>
+                    <div className="rounded-full border border-black flex items-center justify-center font-bold shrink-0" style={{ width: `${f.option * 1.8}px`, height: `${f.option * 1.8}px`, fontSize: `${f.option * 0.75}pt` }}>
                       {String.fromCharCode(65 + oIdx)}
                     </div>
                     <span>{opt}</span>
@@ -63,14 +73,14 @@ function ExerciseRender({ result, exerciseType, sectionIdx }: { result: any, exe
 
             {exerciseType === 'math_steps' && (
               <div className="pl-8 space-y-5">
-                <p className="text-[14pt] text-slate-500 font-bold">วิธีทำ:</p>
+                <p className="text-slate-500 font-bold" style={{ fontSize: `${f.description}pt` }}>วิธีทำ:</p>
                 <div className="space-y-4">
                   <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
                   <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
                   <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
                   <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
                   <div className="flex items-end gap-3 pt-2">
-                    <span className="text-[14pt] font-black shrink-0">ตอบ:</span>
+                    <span className="font-black shrink-0" style={{ fontSize: `${f.description}pt` }}>ตอบ:</span>
                     <div className="border-b border-dotted border-slate-400 h-8 flex-1"></div>
                   </div>
                 </div>
@@ -124,6 +134,13 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
   const [saving, setSaving] = useState(false);
   const [combinedResults, setCombinedResults] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [fontSettings, setFontSettings] = useState<FontSettings>({
+    title: 18,
+    indicators: 12,
+    description: 14,
+    question: 16,
+    option: 16
+  });
 
   useEffect(() => {
     if (exerciseId) {
@@ -134,6 +151,9 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
           const found = data.find((ex: any) => ex.id === Number(exerciseId));
           if (found) {
             const content = JSON.parse(found.content);
+            if (content.fontSettings) {
+              setFontSettings(content.fontSettings);
+            }
             if (Array.isArray(content.sections)) {
               setCombinedResults(content.sections);
             } else {
@@ -210,7 +230,10 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
   };
 
   const handleSave = async () => {
-    const finalContent = combinedResults.length > 0 ? { sections: combinedResults } : result;
+    const finalContent = combinedResults.length > 0 
+      ? { sections: combinedResults, fontSettings } 
+      : { ...result, fontSettings };
+    
     if (!finalContent) return;
     
     setSaving(true);
@@ -274,10 +297,10 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
           <div className="printable-body">
             {combinedResults.length > 0 ? (
               combinedResults.map((res, rIdx) => (
-                <ExerciseRender key={rIdx} result={res} exerciseType={res.type} sectionIdx={rIdx + 1} />
+                <ExerciseRender key={rIdx} result={res} exerciseType={res.type} sectionIdx={rIdx + 1} fonts={fontSettings} />
               ))
             ) : result ? (
-              <ExerciseRender result={result} exerciseType={formData.type} />
+              <ExerciseRender result={result} exerciseType={formData.type} fonts={fontSettings} />
             ) : null}
           </div>
           <div className="mt-auto pt-6 border-t border-black">
@@ -363,6 +386,21 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
               </button>
             </div>
           </div>
+
+          {/* Font Settings - New Menu */}
+          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
+              <Settings size={18} className="text-indigo-500" />
+              ปรับแต่งขนาดอักษร (Sarabun)
+            </h3>
+            <div className="space-y-4">
+              <FontSizeInput label="ส่วนหัวข้อตอน/ชื่อแบบฝึก" value={fontSettings.title} onChange={(v) => setFontSettings({...fontSettings, title: v})} />
+              <FontSizeInput label="ส่วนมาตรฐาน/ตัวชี้วัด" value={fontSettings.indicators} onChange={(v) => setFontSettings({...fontSettings, indicators: v})} />
+              <FontSizeInput label="ส่วนคำชี้แจง/คำสั่ง" value={fontSettings.description} onChange={(v) => setFontSettings({...fontSettings, description: v})} />
+              <FontSizeInput label="ส่วนโจทย์คำถาม" value={fontSettings.question} onChange={(v) => setFontSettings({...fontSettings, question: v})} />
+              <FontSizeInput label="ส่วนตัวเลือกตอบ" value={fontSettings.option} onChange={(v) => setFontSettings({...fontSettings, option: v})} />
+            </div>
+          </div>
         </div>
 
         <div className="col-span-12 lg:col-span-8 flex flex-col">
@@ -390,6 +428,40 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function FontSizeInput({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex justify-between items-center px-1">
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</label>
+        <span className="text-[10px] font-mono font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">{value}pt</span>
+      </div>
+      <div className="flex items-center gap-3 bg-slate-50 p-1 rounded-xl border border-slate-100">
+        <button 
+          onClick={() => onChange(Math.max(8, value - 0.5))} 
+          className="w-8 h-8 rounded-lg bg-white shadow-sm border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all font-bold text-slate-600 active:scale-95"
+        >
+          -
+        </button>
+        <input 
+          type="range" 
+          min="8" 
+          max="32" 
+          step="0.5"
+          value={value} 
+          onChange={(e) => onChange(parseFloat(e.target.value))} 
+          className="flex-1 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+        />
+        <button 
+          onClick={() => onChange(Math.min(48, value + 0.5))} 
+          className="w-8 h-8 rounded-lg bg-white shadow-sm border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all font-bold text-slate-600 active:scale-95"
+        >
+          +
+        </button>
       </div>
     </div>
   );
