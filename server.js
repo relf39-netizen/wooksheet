@@ -47,6 +47,11 @@ async function startServer() {
   app.set('trust proxy', 1);
 
   app.use((req, res, next) => {
+    // Cut /server.cjs from URL if present (for IIS/Plesk compatibility)
+    if (req.url.startsWith('/server.cjs')) {
+      req.url = req.url.replace('/server.cjs', '');
+      if (req.url === '') req.url = '/';
+    }
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
     next();
   });
@@ -277,7 +282,7 @@ async function startServer() {
     } catch (error) { res.status(500).send(); }
   });
 
-  app.put('/api/exercises/:id', async (req, res) => {
+  app.post('/api/exercises/:id/update', async (req, res) => {
     const user = req.session?.user;
     if (!user) return res.status(401).send();
     const { id } = req.params;
@@ -291,7 +296,7 @@ async function startServer() {
     } catch (error) { res.status(500).send(); }
   });
 
-  app.delete('/api/exercises/:id', async (req, res) => {
+  app.post('/api/exercises/:id/delete', async (req, res) => {
     const user = req.session?.user;
     if (!user) return res.status(401).send();
     const { id } = req.params;

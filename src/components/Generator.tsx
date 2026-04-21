@@ -141,7 +141,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
       setResult(null);
       setCombinedResults([]);
       setIsEditing(false);
-      const apiBase = '';
+      const apiBase = '/server.cjs';
       fetch(`${apiBase}/api/exercises/${exerciseId}`)
         .then(res => res.json())
         .then(found => {
@@ -242,10 +242,11 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
     
     setSaving(true);
     try {
-      const apiBase = '';
-      const url = isEditing && exerciseId ? `${apiBase}/api/exercises/${exerciseId}` : `${apiBase}/api/exercises`;
+      const apiBase = '/server.cjs';
+      const isUpdating = isEditing && exerciseId;
+      const url = isUpdating ? `${apiBase}/api/exercises/${exerciseId}/update` : `${apiBase}/api/exercises`;
       const res = await fetch(url, {
-        method: isEditing && exerciseId ? 'PUT' : 'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: formData.title || result?.title || combinedResults[0]?.title || 'แบบฝึกหัดใหม่',

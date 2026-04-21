@@ -26,7 +26,7 @@ export default function Register({ onNavigate }: { onNavigate: (page: string) =>
     setError('');
 
     try {
-      const apiBase = '';
+      const apiBase = '/server.cjs';
       const res = await fetch(`${apiBase}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

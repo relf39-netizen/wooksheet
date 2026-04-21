@@ -13,7 +13,7 @@ export default function Login({ onLogin, onNavigate }: { onLogin: (user: any) =>
     setError('');
 
     try {
-      const apiBase = '';
+      const apiBase = '/server.cjs';
       const res = await fetch(`${apiBase}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
