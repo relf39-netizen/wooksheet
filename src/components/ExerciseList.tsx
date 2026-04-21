@@ -34,9 +34,12 @@ export default function ExerciseList({ onNavigate }: { onNavigate: (page: string
       const res = await fetch(`${apiBase}/api/exercises/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setExercises(prev => prev.filter(ex => ex.id !== id));
+      } else {
+        const errorText = await res.text();
+        alert('ลบไม่สำเร็จ: ' + errorText);
       }
-    } catch (e) {
-      alert('ลบไม่สำเร็จ');
+    } catch (e: any) {
+      alert('เกิดข้อผิดพลาดในการลบ: ' + e.message);
     }
   };
 

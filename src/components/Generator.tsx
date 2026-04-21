@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Printer, ChevronLeft, Loader2, Wand2, Type, CheckSquare, Layers, FileText, Settings, Type as FontType } from 'lucide-react';
+import { Sparkles, Printer, ChevronLeft, Loader2, Wand2, Type, CheckSquare, Layers, FileText, Settings, Save, Plus } from 'lucide-react';
 import { User, ExerciseType } from '../types';
 import { GoogleGenAI, Type as GeminiType } from "@google/genai";
 
@@ -20,7 +20,7 @@ interface FontSettings {
   option: number;
 }
 
-function ExerciseRender({ result, exerciseType, sectionIdx, fonts }: { result: any, exerciseType: string, sectionIdx?: number, fonts?: FontSettings }) {
+function ExerciseRender({ result, exerciseType, sectionIdx, fonts, startIdx = 1 }: { result: any, exerciseType: string, sectionIdx?: number, fonts?: any, startIdx?: number }) {
   const f = fonts || { title: 18, indicators: 12, description: 14, question: 16, option: 16 };
   
   return (
@@ -45,7 +45,7 @@ function ExerciseRender({ result, exerciseType, sectionIdx, fonts }: { result: a
         {result.items.map((item: any, idx: number) => (
           <div key={idx} className="space-y-4">
             <div className="font-bold leading-relaxed flex gap-3" style={{ fontSize: `${f.question}pt` }}>
-              <span className="shrink-0">{idx + 1}.</span>
+              <span className="shrink-0">{startIdx + idx}.</span>
               <div className="flex-1">
                 {exerciseType === 'matching' ? (
                   <div className="grid grid-cols-2 gap-24">
@@ -134,25 +134,21 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
   const [saving, setSaving] = useState(false);
   const [combinedResults, setCombinedResults] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [fontSettings, setFontSettings] = useState<FontSettings>({
-    title: 18,
-    indicators: 12,
-    description: 14,
-    question: 16,
-    option: 16
-  });
+  const [existingFontSettings, setExistingFontSettings] = useState<any>(null);
 
   useEffect(() => {
     if (exerciseId) {
+      setResult(null);
+      setCombinedResults([]);
+      setIsEditing(false);
       const apiBase = '/server.cjs';
-      fetch(`${apiBase}/api/exercises`)
+      fetch(`${apiBase}/api/exercises/${exerciseId}`)
         .then(res => res.json())
-        .then(data => {
-          const found = data.find((ex: any) => ex.id === Number(exerciseId));
+        .then(found => {
           if (found) {
             const content = JSON.parse(found.content);
             if (content.fontSettings) {
-              setFontSettings(content.fontSettings);
+              setExistingFontSettings(content.fontSettings);
             }
             if (Array.isArray(content.sections)) {
               setCombinedResults(content.sections.map((s: any) => ({ ...s, indicators: s.indicators || found.indicators })));
@@ -230,18 +226,26 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
   };
 
   const handleSave = async () => {
-    const finalContent = combinedResults.length > 0 
-      ? { sections: combinedResults, fontSettings } 
-      : { ...result, fontSettings };
+    if (combinedResults.length === 0 && !result) {
+      alert('คุณยังไม่ได้สร้างแบบฝึกหัด กรุณากดปุ่ม "สร้างด้วย AI" ก่อนครับ');
+      return;
+    }
+
+    const finalContent: any = combinedResults.length > 0 
+      ? { sections: combinedResults } 
+      : { ...result };
     
-    if (!finalContent) return;
+    // รักษาค่า FontSettings เดิมไว้ (ถ้ามี)
+    if (existingFontSettings) {
+      finalContent.fontSettings = existingFontSettings;
+    }
     
     setSaving(true);
     try {
       const apiBase = '/server.cjs';
-      const url = isEditing ? `${apiBase}/api/exercises/${exerciseId}` : `${apiBase}/api/exercises`;
+      const url = isEditing && exerciseId ? `${apiBase}/api/exercises/${exerciseId}` : `${apiBase}/api/exercises`;
       const res = await fetch(url, {
-        method: isEditing ? 'PUT' : 'POST',
+        method: isEditing && exerciseId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: formData.title || result?.title || combinedResults[0]?.title || 'แบบฝึกหัดใหม่',
@@ -254,12 +258,16 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
       if (res.ok) {
         const data = await res.json();
         alert(isEditing ? 'อัปเดตสำเร็จ' : 'บันทึกสำเร็จ');
-        // นำทางไปหน้าพิมพ์ทันทีหลังจากบันทึก
-        const idToPrint = isEditing ? exerciseId : data.id;
+        const idToPrint = (isEditing && exerciseId) ? exerciseId : data.id;
         onNavigate('print', String(idToPrint));
+      } else {
+        const err = await res.text();
+        console.error('Save failed:', err);
+        alert('บันทรึกไม่สำเร็จ: ' + err);
       }
-    } catch (err) {
-      alert('บันทึกไม่สำเร็จ');
+    } catch (err: any) {
+      console.error('Save error:', err);
+      alert('บันทึกไม่สำเร็จ: ' + err.message);
     } finally {
       setSaving(false);
     }
@@ -269,6 +277,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
     if (result) {
       setCombinedResults([...combinedResults, { ...result, type: formData.type }]);
       setResult(null);
+      setFormData({ ...formData, topic: '' }); // ล้างหัวข้อเพื่อเตรียมสร้างส่วนถัดไป
     }
   };
 
@@ -299,12 +308,19 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
           </div>
           <div className="printable-body">
             {combinedResults.length > 0 ? (
-              combinedResults.map((res, rIdx) => (
-                <ExerciseRender key={rIdx} result={res} exerciseType={res.type} sectionIdx={rIdx + 1} fonts={fontSettings} />
-              ))
+              combinedResults.map((res, rIdx) => {
+                const startIdx = combinedResults.slice(0, rIdx).reduce((acc, curr) => acc + curr.items.length, 0) + 1;
+                return (
+                  <ExerciseRender key={rIdx} result={res} exerciseType={res.type} sectionIdx={rIdx + 1} startIdx={startIdx} />
+                );
+              })
             ) : result ? (
-              <ExerciseRender result={result} exerciseType={formData.type} fonts={fontSettings} />
-            ) : null}
+              <ExerciseRender result={result} exerciseType={formData.type} />
+            ) : (
+              <div className="h-64 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-3xl text-slate-300 font-bold uppercase tracking-widest text-sm">
+                ยังไม่มีเนื้อหาแบบฝึกหัด
+              </div>
+            )}
           </div>
           <div className="mt-auto pt-6 border-t border-black">
             <div className="flex justify-between items-center text-[11px] font-bold">
@@ -366,8 +382,13 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
 
       <div className="grid grid-cols-12 gap-8">
         <div className="col-span-12 lg:col-span-4 flex flex-col gap-6 no-print">
-          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2"><span className="w-1 h-4 bg-indigo-500 rounded-full"></span>ตั้งค่า</h3>
+          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-2">
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${combinedResults.length > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'}`}>
+                {combinedResults.length} Sections
+              </span>
+            </div>
+            <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2"><span className="w-1 h-4 bg-indigo-500 rounded-full"></span>ตั้งค่าส่วนที่ {combinedResults.length + 1}</h3>
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <select value={formData.grade} onChange={(e) => setFormData({...formData, grade: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm">
@@ -376,32 +397,33 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
                 <input list="subjects" value={formData.course} onChange={(e) => setFormData({...formData, course: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm" placeholder="วิชา" />
                 <datalist id="subjects">{CORE_SUBJECTS.map(s => <option key={s} value={s} />)}</datalist>
               </div>
-              <input value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm" placeholder="หัวข้อบทเรียน" />
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">หัวข้อ/เนื้อหาที่ต้องการเน้น</label>
+                <textarea 
+                  value={formData.topic} 
+                  onChange={(e) => setFormData({...formData, topic: e.target.value})} 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm h-24 resize-none" 
+                  placeholder="เช่น มาตราตัวสะกดแม่กกา, การบวกเลขไม่เกิน 100" 
+                />
+              </div>
               <div className="flex gap-4">
                 <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value as ExerciseType})} className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm">
                   {EXERCISE_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                 </select>
-                <input type="number" min="1" max="20" value={formData.count} onChange={(e) => setFormData({...formData, count: parseInt(e.target.value)})} className="w-20 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm" />
+                <div className="flex flex-col items-center">
+                  <span className="text-[9px] font-bold text-slate-400 mb-1">จำนวนข้อ</span>
+                  <input type="number" min="1" max="20" value={formData.count} onChange={(e) => setFormData({...formData, count: parseInt(e.target.value)})} className="w-16 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-center text-sm" />
+                </div>
               </div>
-              <button onClick={handleGenerate} disabled={generating} className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest disabled:opacity-50">
-                {generating ? <Loader2 className="animate-spin" size={20} /> : <Wand2 size={20} />}
-                <span>{generating ? 'กำลังสร้าง...' : 'สร้างด้วย AI'}</span>
+              
+              <button 
+                onClick={handleGenerate} 
+                disabled={generating} 
+                className={`w-full text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest disabled:opacity-50 transition-all ${combinedResults.length > 0 ? 'bg-amber-600 hover:bg-amber-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+              >
+                {generating ? <Loader2 className="animate-spin" size={20} /> : combinedResults.length > 0 ? <Plus size={20} /> : <Wand2 size={20} />}
+                <span>{generating ? 'กำลังสร้าง...' : combinedResults.length > 0 ? `เพิ่มส่วนที่ ${combinedResults.length + 1}` : 'สร้างใบงานแรก'}</span>
               </button>
-            </div>
-          </div>
-
-          {/* Font Settings - New Menu */}
-          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <Settings size={18} className="text-indigo-500" />
-              ปรับแต่งขนาดอักษร (Sarabun)
-            </h3>
-            <div className="space-y-4">
-              <FontSizeInput label="ส่วนหัวข้อตอน/ชื่อแบบฝึก" value={fontSettings.title} onChange={(v) => setFontSettings({...fontSettings, title: v})} />
-              <FontSizeInput label="ส่วนมาตรฐาน/ตัวชี้วัด" value={fontSettings.indicators} onChange={(v) => setFontSettings({...fontSettings, indicators: v})} />
-              <FontSizeInput label="ส่วนคำชี้แจง/คำสั่ง" value={fontSettings.description} onChange={(v) => setFontSettings({...fontSettings, description: v})} />
-              <FontSizeInput label="ส่วนโจทย์คำถาม" value={fontSettings.question} onChange={(v) => setFontSettings({...fontSettings, question: v})} />
-              <FontSizeInput label="ส่วนตัวเลือกตอบ" value={fontSettings.option} onChange={(v) => setFontSettings({...fontSettings, option: v})} />
             </div>
           </div>
         </div>
@@ -431,40 +453,6 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function FontSizeInput({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex justify-between items-center px-1">
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</label>
-        <span className="text-[10px] font-mono font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">{value}pt</span>
-      </div>
-      <div className="flex items-center gap-3 bg-slate-50 p-1 rounded-xl border border-slate-100">
-        <button 
-          onClick={() => onChange(Math.max(8, value - 0.5))} 
-          className="w-8 h-8 rounded-lg bg-white shadow-sm border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all font-bold text-slate-600 active:scale-95"
-        >
-          -
-        </button>
-        <input 
-          type="range" 
-          min="8" 
-          max="32" 
-          step="0.5"
-          value={value} 
-          onChange={(e) => onChange(parseFloat(e.target.value))} 
-          className="flex-1 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-        />
-        <button 
-          onClick={() => onChange(Math.min(48, value + 0.5))} 
-          className="w-8 h-8 rounded-lg bg-white shadow-sm border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all font-bold text-slate-600 active:scale-95"
-        >
-          +
-        </button>
       </div>
     </div>
   );
