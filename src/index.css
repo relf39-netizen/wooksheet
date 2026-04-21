@@ -10,3 +10,15 @@ body {
   margin: 0;
   font-family: 'Inter', 'Sarabun', sans-serif;
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body, html {
+    background: white !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+}

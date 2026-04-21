@@ -86,7 +86,7 @@ export default function App() {
     switch (currentPage) {
     case 'generate': return <Generator user={user} onNavigate={navigateTo} exerciseId={activeParam} />;
     case 'history': return <ExerciseList onNavigate={navigateTo} />;
-      case 'print': return <PrintView exerciseId={activeParam} onNavigate={navigateTo} />;
+      case 'print': return <PrintView user={user} exerciseId={activeParam} onNavigate={navigateTo} />;
       default: return <TeacherDashboard user={user} onNavigate={navigateTo} onUserUpdate={onUserUpdate} />;
     }
   };
@@ -99,12 +99,12 @@ export default function App() {
             {renderContent()}
           </motion.div>
         ) : (
-          <div key="app" className="flex h-screen overflow-hidden">
+          <div key="app" className="flex h-screen overflow-hidden print:block print:h-auto print:overflow-visible">
             {/* Sidebar */}
             <motion.aside 
               initial={false}
               animate={{ width: isSidebarOpen ? 256 : 80 }}
-              className="bg-slate-900 text-white flex flex-col transition-all duration-300 relative z-20 border-r border-slate-700 shadow-xl"
+              className="bg-slate-900 text-white flex flex-col transition-all duration-300 relative z-20 border-r border-slate-700 shadow-xl no-print"
             >
               <div className="p-6 border-b border-slate-700">
                 <div className="flex items-center gap-3">
@@ -164,8 +164,8 @@ export default function App() {
             </motion.aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto relative bg-slate-50">
-              <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10 transition-all">
+            <main className="flex-1 overflow-y-auto relative bg-slate-50 print:block print:bg-white">
+              <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10 transition-all no-print">
                 <div className="flex items-center gap-4">
                   <button className="md:hidden p-2 hover:bg-slate-100 rounded-lg" onClick={() => setSidebarOpen(!isSidebarOpen)}>
                     <Menu size={20} />
@@ -189,7 +189,7 @@ export default function App() {
                 </div>
               </header>
 
-              <div className="p-8 max-w-6xl mx-auto">
+              <div className="p-8 max-w-6xl mx-auto print:p-0 print:max-w-none">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentPage}
