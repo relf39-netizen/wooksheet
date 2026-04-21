@@ -8,11 +8,14 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
 
   useEffect(() => {
     const apiBase = '/server.cjs';
-    fetch(`${apiBase}/api/exercises`)
+    // ใช้ timestamp เพื่อป้องกัน Cache
+    fetch(`${apiBase}/api/exercises/${exerciseId}?t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
-        const found = data.find((ex: Exercise) => ex.id === Number(exerciseId));
-        setExercise(found);
+        setExercise(data);
+        setLoading(false);
+      })
+      .catch(() => {
         setLoading(false);
       });
   }, [exerciseId]);
@@ -69,9 +72,9 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           {/* Instructions */}
           <div className="mb-8 border-b border-black pb-4 text-center">
             <h1 className="font-black mb-1 uppercase tracking-tighter" style={{ fontSize: `${f.title}pt` }}>{exercise.title}</h1>
-            {content.indicators && (
+            {(content.indicators || exercise.indicators) && (
               <p className="text-slate-500 font-bold italic mb-4" style={{ fontSize: `${f.indicators}pt` }}>
-                มาตรฐาน/ตัวชี้วัด: {content.indicators}
+                มาตรฐาน/ตัวชี้วัด: {content.indicators || exercise.indicators}
               </p>
             )}
             <div className="bg-slate-50 p-4 border-l-4 border-black italic text-left leading-relaxed shadow-sm" style={{ fontSize: `${f.description}pt` }}>

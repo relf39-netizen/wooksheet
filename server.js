@@ -256,16 +256,30 @@ async function startServer() {
     } catch (error) { res.status(500).send(); }
   });
 
+  app.get('/api/exercises/:id', async (req, res) => {
+    const user = req.session?.user;
+    if (!user) return res.status(401).send();
+    const { id } = req.params;
+    try {
+      const [rows] = await pool.execute('SELECT * FROM exercises WHERE id = ? AND teacher_id = ?', [id, user.id]);
+      if (rows[0]) {
+        res.json(rows[0]);
+      } else {
+        res.status(404).send();
+      }
+    } catch (error) { res.status(500).send(); }
+  });
+
   app.post('/api/exercises', async (req, res) => {
     const user = req.session?.user;
     if (!user) return res.status(401).send();
     const { title, course, grade, indicators, content } = req.body;
     try {
-      await pool.execute(
+      const [result] = await pool.execute(
         'INSERT INTO exercises (teacher_id, title, course, grade, indicators, content) VALUES (?, ?, ?, ?, ?, ?)',
         [user.id, title, course, grade, indicators, JSON.stringify(content)]
       );
-      res.json({ success: true });
+      res.json({ success: true, id: result.insertId });
     } catch (error) { res.status(500).send(); }
   });
 
@@ -273,11 +287,11 @@ async function startServer() {
     const user = req.session?.user;
     if (!user) return res.status(401).send();
     const { id } = req.params;
-    const { title, course, grade, content } = req.body;
+    const { title, course, grade, indicators, content } = req.body;
     try {
       await pool.execute(
-        'UPDATE exercises SET title = ?, course = ?, grade = ?, content = ? WHERE id = ? AND teacher_id = ?',
-        [title, course, grade, JSON.stringify(content), id, user.id]
+        'UPDATE exercises SET title = ?, course = ?, grade = ?, indicators = ?, content = ? WHERE id = ? AND teacher_id = ?',
+        [title, course, grade, indicators, JSON.stringify(content), id, user.id]
       );
       res.json({ success: true });
     } catch (error) { res.status(500).send(); }

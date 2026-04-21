@@ -155,9 +155,9 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
               setFontSettings(content.fontSettings);
             }
             if (Array.isArray(content.sections)) {
-              setCombinedResults(content.sections);
+              setCombinedResults(content.sections.map((s: any) => ({ ...s, indicators: s.indicators || found.indicators })));
             } else {
-              setResult(content);
+              setResult({ ...content, indicators: content.indicators || found.indicators });
             }
             setFormData({
               ...formData,
@@ -252,8 +252,11 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
         })
       });
       if (res.ok) {
+        const data = await res.json();
         alert(isEditing ? 'อัปเดตสำเร็จ' : 'บันทึกสำเร็จ');
-        onNavigate('history');
+        // นำทางไปหน้าพิมพ์ทันทีหลังจากบันทึก
+        const idToPrint = isEditing ? exerciseId : data.id;
+        onNavigate('print', String(idToPrint));
       }
     } catch (err) {
       alert('บันทึกไม่สำเร็จ');
