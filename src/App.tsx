@@ -197,6 +197,7 @@ export default function App() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
+                    className="print:opacity-100 print:!transform-none print:!block print:static"
                   >
                     {renderContent()}
                   </motion.div>

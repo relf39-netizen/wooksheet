@@ -252,7 +252,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
               <span className="shrink-0">ชั้นประถมศึกษาปีที่: ................. / .................</span>
             </div>
           </div>
-          <div className="flex-1">
+          <div className="printable-body">
             {combinedResults.length > 0 ? (
               combinedResults.map((res, rIdx) => (
                 <ExerciseRender key={rIdx} result={res} exerciseType={res.type} sectionIdx={rIdx + 1} />
@@ -261,7 +261,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
               <ExerciseRender result={result} exerciseType={formData.type} />
             ) : null}
           </div>
-          <div className="mt-12 pt-6 border-t border-black">
+          <div className="mt-auto pt-6 border-t border-black">
             <div className="flex justify-between items-center text-[12px] font-bold">
               <div className="flex gap-4">
                 <span>รายวิชา: {formData.course}</span>
@@ -284,22 +284,19 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
             }
           }
           @media print {
-            #printable-area { 
-              display: block !important; 
-              width: 210mm !important; 
+            .print-container {
+              width: 210mm !important;
               min-height: 297mm !important;
-              margin: 0 !important; 
+              margin: 0 !important;
               padding: 0 !important;
-              box-shadow: none !important;
-              transform: none !important;
-              position: absolute !important;
-              left: 0 !important;
-              top: 0 !important;
-              visibility: visible !important;
-              background: white !important;
-              z-index: 9999 !important;
             }
-            #printable-area * { visibility: visible !important; }
+            .printable-content {
+              padding: 20mm !important;
+              min-height: 297mm !important;
+            }
+            .printable-body {
+              display: block !important;
+            }
             @page { size: A4; margin: 0; }
           }
         `}</style>

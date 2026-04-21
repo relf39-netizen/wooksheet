@@ -20,5 +20,41 @@ body {
     background: white !important;
     height: auto !important;
     overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Reset all fixed/hidden containers that might clip content */
+  div, main, section, article {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #printable-area {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 210mm !important;
+    background: white !important;
+    visibility: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #printable-area * {
+    visibility: visible !important;
+  }
+
+  /* Disable transitions and animations during print */
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
   }
 }

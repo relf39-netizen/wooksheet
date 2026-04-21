@@ -64,7 +64,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           </div>
 
           {/* Items */}
-          <div className="flex-1 space-y-10">
+          <div className="printable-body">
             {content.sections ? (
               content.sections.map((sec: any, sIdx: number) => (
                 <div key={sIdx} className="mb-12">
@@ -122,13 +122,13 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           </div>
 
           {/* Footer */}
-          <footer className="mt-12 pt-6 border-t border-black flex justify-between items-center text-[12px] font-bold">
+          <footer className="mt-auto pt-6 border-t border-black flex justify-between items-center text-[12px] font-bold">
             <div className="flex gap-4">
               <span>รายวิชา: {exercise.course}</span>
               <span>สร้างโดย: {user.name} {user.surname}</span>
               <span>ตำแหน่ง: {user.position || user.school || 'ครูผู้สอน'}</span>
             </div>
-            <span className="text-[9px] text-slate-400 italic uppercase">EduGen AI System</span>
+            <span className="text-[9px] text-slate-400 italic uppercase tracking-tighter">EduGen AI System</span>
           </footer>
         </div>
 
@@ -142,22 +142,19 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             }
           }
           @media print {
-            #printable-area { 
-              display: block !important; 
-              width: 210mm !important; 
+            .print-container {
+              width: 210mm !important;
               min-height: 297mm !important;
-              margin: 0 !important; 
+              margin: 0 !important;
               padding: 0 !important;
-              box-shadow: none !important;
-              transform: none !important;
-              position: absolute !important;
-              left: 0 !important;
-              top: 0 !important;
-              visibility: visible !important;
-              background: white !important;
-              z-index: 9999 !important;
             }
-            #printable-area * { visibility: visible !important; }
+            .printable-content {
+              padding: 20mm !important;
+              min-height: 297mm !important;
+            }
+            .printable-body {
+              display: block !important;
+            }
             @page { size: A4; margin: 0; }
           }
         `}</style>
