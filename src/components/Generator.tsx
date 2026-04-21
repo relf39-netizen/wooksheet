@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Sparkles, Printer, ChevronLeft, Loader2, Wand2, Type, CheckSquare, Layers, FileText, Settings, Save, Plus } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Sparkles, Printer, ChevronLeft, Loader2, Wand2, Type, CheckSquare, Layers, FileText, Settings, Save, Plus, Trash2, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
 import { User, ExerciseType } from '../types';
 import { GoogleGenAI, Type as GeminiType } from "@google/genai";
 
@@ -20,40 +20,127 @@ interface FontSettings {
   option: number;
 }
 
-function ExerciseRender({ result, exerciseType, sectionIdx, fonts, startIdx = 1 }: { result: any, exerciseType: string, sectionIdx?: number, fonts?: any, startIdx?: number }) {
+function ExerciseRender({ 
+  result, 
+  exerciseType, 
+  sectionIdx, 
+  fonts, 
+  startIdx = 1,
+  editable = false,
+  onUpdateItem,
+  onAddItem,
+  onRemoveItem,
+  onUpdateHeader
+}: { 
+  result: any, 
+  exerciseType: string, 
+  sectionIdx?: number, 
+  fonts?: any, 
+  startIdx?: number,
+  editable?: boolean,
+  onUpdateItem?: (idx: number, field: string, value: any) => void,
+  onAddItem?: () => void,
+  onRemoveItem?: (idx: number) => void,
+  onUpdateHeader?: (field: string, value: string) => void
+}) {
   const f = fonts || { title: 18, indicators: 12, description: 14, question: 16, option: 16 };
   
   return (
-    <div className="mb-12 last:mb-0">
+    <div className={`mb-12 last:mb-0 relative group/section ${editable ? 'p-6 border-2 border-transparent hover:border-slate-200 rounded-2xl transition-all' : ''}`}>
       <div className="text-center border-b border-black pb-4 mb-6">
-        <h3 className="font-bold" style={{ fontSize: `${f.title}pt` }}>
-          {sectionIdx && <span>ตอนที่ {sectionIdx}: </span>}
-          {result.title}
-        </h3>
-        {result.indicators && (
-          <div className="mt-1 text-slate-500 font-bold uppercase tracking-tight italic" style={{ fontSize: `${f.indicators}pt` }}>
-            มาตรฐาน/ตัวชี้วัด: {result.indicators}
+        {editable ? (
+          <div className="space-y-2">
+            <input 
+              className="w-full text-center font-bold bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-indigo-200 rounded px-2"
+              style={{ fontSize: `${f.title}pt` }}
+              value={result.title}
+              onChange={(e) => onUpdateHeader?.('title', e.target.value)}
+              placeholder="หัวข้อตอนที่..."
+            />
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ตัวชี้วัด:</span>
+              <input 
+                className="flex-1 max-w-md text-center text-slate-600 font-bold italic bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-indigo-200 rounded px-2"
+                style={{ fontSize: `${f.indicators}pt` }}
+                value={result.indicators || ''}
+                onChange={(e) => onUpdateHeader?.('indicators', e.target.value)}
+                placeholder="มาตรฐาน/ตัวชี้วัด..."
+              />
+            </div>
           </div>
+        ) : (
+          <>
+            <h3 className="font-bold" style={{ fontSize: `${f.title}pt` }}>
+              {sectionIdx !== undefined && <span>ตอนที่ {sectionIdx}: </span>}
+              {result.title}
+            </h3>
+            {result.indicators && (
+              <div className="mt-1 text-slate-500 font-bold uppercase tracking-tight italic" style={{ fontSize: `${f.indicators}pt` }}>
+                มาตรฐาน/ตัวชี้วัด: {result.indicators}
+              </div>
+            )}
+          </>
         )}
       </div>
       
-      <div className="mb-6 bg-slate-50 p-4 border-l-4 border-black">
-        <p className="font-bold leading-relaxed" style={{ fontSize: `${f.description}pt` }}>{result.description}</p>
+      <div className="mb-6 bg-slate-50 p-4 border-l-4 border-black relative">
+        {editable ? (
+          <textarea 
+            className="w-full font-bold leading-relaxed bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-indigo-200 rounded px-2 resize-none"
+            style={{ fontSize: `${f.description}pt` }}
+            value={result.description}
+            onChange={(e) => onUpdateHeader?.('description', e.target.value)}
+            placeholder="คำชี้แจง..."
+            rows={1}
+            onInput={(e: any) => {
+              e.target.style.height = 'auto';
+              e.target.style.height = e.target.scrollHeight + 'px';
+            }}
+          />
+        ) : (
+          <p className="font-bold leading-relaxed" style={{ fontSize: `${f.description}pt` }}>{result.description}</p>
+        )}
       </div>
 
       <div className="space-y-8">
         {result.items.map((item: any, idx: number) => (
-          <div key={idx} className="space-y-4">
+          <div key={idx} className={`space-y-4 relative group/item ${editable ? 'p-4 border border-transparent hover:border-slate-100 rounded-xl hover:bg-slate-50/50 transition-all' : ''}`}>
+            {editable && (
+              <div className="absolute -left-12 top-4 flex flex-col gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity no-print">
+                <button 
+                  onClick={() => onRemoveItem?.(idx)}
+                  className="p-1.5 bg-white text-red-500 rounded-lg border border-red-100 hover:bg-red-500 hover:text-white shadow-sm transition-all"
+                  title="ลบข้อนี้"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            )}
+            
             <div className="font-bold leading-relaxed flex gap-3" style={{ fontSize: `${f.question}pt` }}>
               <span className="shrink-0">{startIdx + idx}.</span>
               <div className="flex-1">
-                {exerciseType === 'matching' ? (
-                  <div className="grid grid-cols-2 gap-24">
-                    <div className="border-b border-black pb-1">{item.question}</div>
-                    <div className="border-b border-black pb-1 text-right italic text-slate-300">....................................</div>
-                  </div>
+                {editable ? (
+                  <textarea 
+                    className="w-full bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-indigo-200 rounded px-2 resize-none"
+                    value={item.question}
+                    onChange={(e) => onUpdateItem?.(idx, 'question', e.target.value)}
+                    placeholder="โจทย์คำถาม..."
+                    rows={1}
+                    onInput={(e: any) => {
+                      e.target.style.height = 'auto';
+                      e.target.style.height = e.target.scrollHeight + 'px';
+                    }}
+                  />
                 ) : (
-                  <span>{item.question}</span>
+                  exerciseType === 'matching' ? (
+                    <div className="grid grid-cols-2 gap-24">
+                      <div className="border-b border-black pb-1">{item.question}</div>
+                      <div className="border-b border-black pb-1 text-right italic text-slate-300">....................................</div>
+                    </div>
+                  ) : (
+                    <span>{item.question}</span>
+                  )
                 )}
               </div>
             </div>
@@ -65,7 +152,20 @@ function ExerciseRender({ result, exerciseType, sectionIdx, fonts, startIdx = 1 
                     <div className="rounded-full border border-black flex items-center justify-center font-bold shrink-0" style={{ width: `${f.option * 1.8}px`, height: `${f.option * 1.8}px`, fontSize: `${f.option * 0.75}pt` }}>
                       {String.fromCharCode(65 + oIdx)}
                     </div>
-                    <span>{opt}</span>
+                    {editable ? (
+                      <input 
+                        className="flex-1 bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-indigo-200 rounded px-2"
+                        value={opt}
+                        onChange={(e) => {
+                          const newOpts = [...item.options];
+                          newOpts[oIdx] = e.target.value;
+                          onUpdateItem?.(idx, 'options', newOpts);
+                        }}
+                        placeholder={`ตัวเลือก ${String.fromCharCode(65 + oIdx)}...`}
+                      />
+                    ) : (
+                      <span>{opt}</span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -102,6 +202,18 @@ function ExerciseRender({ result, exerciseType, sectionIdx, fonts, startIdx = 1 
             )}
           </div>
         ))}
+
+        {editable && (
+          <div className="pt-4 flex justify-center no-print">
+            <button 
+              onClick={onAddItem}
+              className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black uppercase hover:bg-indigo-600 transition-all shadow-lg hover:scale-105 active:scale-95"
+            >
+              <Plus size={16} />
+              เพิ่มข้อสอบแมนนวล (+1 ข้อ)
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -287,6 +399,61 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
     setResult(null);
   };
 
+  const updateItem = (sectionIdx: number | null, itemIdx: number, field: string, value: any) => {
+    if (sectionIdx === null) {
+      if (!result) return;
+      const newItems = [...result.items];
+      newItems[itemIdx] = { ...newItems[itemIdx], [field]: value };
+      setResult({ ...result, items: newItems });
+    } else {
+      const newSections = [...combinedResults];
+      const newItems = [...newSections[sectionIdx].items];
+      newItems[itemIdx] = { ...newItems[itemIdx], [field]: value };
+      newSections[sectionIdx] = { ...newSections[sectionIdx], items: newItems };
+      setCombinedResults(newSections);
+    }
+  };
+
+  const addItemToSection = (sectionIdx: number | null) => {
+    const defaultOptions = formData.type === 'multiple_choice' ? ['ตัวเลือก ก', 'ตัวเลือก ข', 'ตัวเลือก ค', 'ตัวเลือก ง'] : undefined;
+    const newItem = { question: 'ตั้งโจทย์ใหม่...', options: defaultOptions, answer: '', explanation: 'คำอธิบาย...' };
+    
+    if (sectionIdx === null) {
+      if (!result) return;
+      setResult({ ...result, items: [...result.items, newItem] });
+    } else {
+      const newSections = [...combinedResults];
+      newSections[sectionIdx] = { ...newSections[sectionIdx], items: [...newSections[sectionIdx].items, newItem] };
+      setCombinedResults(newSections);
+    }
+  };
+
+  const removeItemFromSection = (sectionIdx: number | null, itemIdx: number) => {
+    if (!confirm('ยืนยันการลบข้อสอบนี้?')) return;
+    
+    if (sectionIdx === null) {
+      if (!result) return;
+      const newItems = result.items.filter((_: any, i: number) => i !== itemIdx);
+      setResult({ ...result, items: newItems });
+    } else {
+      const newSections = [...combinedResults];
+      const newItems = newSections[sectionIdx].items.filter((_: any, i: number) => i !== itemIdx);
+      newSections[sectionIdx] = { ...newSections[sectionIdx], items: newItems };
+      setCombinedResults(newSections);
+    }
+  };
+
+  const updateHeader = (sectionIdx: number | null, field: string, value: string) => {
+    if (sectionIdx === null) {
+      if (!result) return;
+      setResult({ ...result, [field]: value });
+    } else {
+      const newSections = [...combinedResults];
+      newSections[sectionIdx] = { ...newSections[sectionIdx], [field]: value };
+      setCombinedResults(newSections);
+    }
+  };
+
   const printArea = () => {
     return (
       <div id="printable-area" className="print-container bg-white text-black font-sarabun">
@@ -310,13 +477,33 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
           <div className="printable-body">
             {combinedResults.length > 0 ? (
               combinedResults.map((res, rIdx) => {
-                const startIdx = combinedResults.slice(0, rIdx).reduce((acc, curr) => acc + curr.items.length, 0) + 1;
+                const prevItemsCount = combinedResults.slice(0, rIdx).reduce((acc, curr) => acc + curr.items.length, 0);
+                const startIdx = prevItemsCount + 1;
                 return (
-                  <ExerciseRender key={rIdx} result={res} exerciseType={res.type} sectionIdx={rIdx + 1} startIdx={startIdx} />
+                  <ExerciseRender 
+                    key={rIdx} 
+                    result={res} 
+                    exerciseType={res.type || formData.type} 
+                    sectionIdx={rIdx + 1} 
+                    startIdx={startIdx} 
+                    editable={true}
+                    onUpdateItem={(iIdx, f, v) => updateItem(rIdx, iIdx, f, v)}
+                    onAddItem={() => addItemToSection(rIdx)}
+                    onRemoveItem={(iIdx) => removeItemFromSection(rIdx, iIdx)}
+                    onUpdateHeader={(f, v) => updateHeader(rIdx, f, v)}
+                  />
                 );
               })
             ) : result ? (
-              <ExerciseRender result={result} exerciseType={formData.type} />
+              <ExerciseRender 
+                result={result} 
+                exerciseType={formData.type} 
+                editable={true}
+                onUpdateItem={(iIdx, f, v) => updateItem(null, iIdx, f, v)}
+                onAddItem={() => addItemToSection(null)}
+                onRemoveItem={(iIdx) => removeItemFromSection(null, iIdx)}
+                onUpdateHeader={(f, v) => updateHeader(null, f, v)}
+              />
             ) : (
               <div className="h-64 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-3xl text-slate-300 font-bold uppercase tracking-widest text-sm">
                 ยังไม่มีเนื้อหาแบบฝึกหัด
