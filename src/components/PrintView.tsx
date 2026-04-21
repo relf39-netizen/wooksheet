@@ -44,80 +44,88 @@ export default function PrintView({ exerciseId, onNavigate }: { exerciseId: stri
       {/* The Printable Document */}
       <div id="print-document" className="bg-white p-12 md:p-16 rounded-[40px] shadow-sm border border-slate-50 min-h-[1000px] print:shadow-none print:border-none print:p-0 print:rounded-none mx-auto max-w-[800px]">
         {/* Header Section */}
-        <header className="border-b-4 border-slate-900 pb-8 mb-12 text-center relative">
-          <div className="absolute top-0 right-0 text-[10px] font-bold text-slate-400 print:hidden uppercase tracking-widest">EduGen System</div>
-          <h1 className="text-4xl font-black text-slate-900 mb-4">{exercise.title}</h1>
-          <div className="flex justify-center flex-wrap gap-x-8 gap-y-2 text-sm font-bold text-slate-600">
-            <div className="flex items-center gap-2">
-              <span>วิชา:</span>
-              <span className="text-slate-900">{exercise.course}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>ระดับชั้น:</span>
-              <span className="text-slate-900">{exercise.grade}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>ผู้สร้าง:</span>
-              <span className="text-slate-900 italic">คุณครู {exercise.id ? 'ผู้ทรงคุณวุฒิ' : ''}</span>
-            </div>
+        <header className="border-b-2 border-slate-900 pb-4 mb-8">
+          <div className="flex justify-between items-center text-[13px] font-bold whitespace-nowrap overflow-hidden">
+            <span className="shrink-0">ชื่อ-นามสกุล: ................................................................................................</span>
+            <span className="shrink-0">เลขที่: .................</span>
+            <span className="shrink-0">ชั้นประถมศึกษาปีที่: ................. / .................</span>
           </div>
         </header>
 
         {/* Instructions */}
-        <div className="mb-12 bg-slate-50 p-6 rounded-2xl border-l-8 border-slate-900 italic text-slate-700 font-medium">
-          <span className="font-black not-italic text-sm mr-2 uppercase tracking-tighter">คำชี้แจง:</span>
-          {content.description}
-        </div>
-
-        {/* Student Info Area */}
-        <div className="grid grid-cols-2 gap-8 mb-16 pb-8 border-b border-dashed border-slate-200">
-          <div className="flex items-end gap-2 text-sm">
-            <span className="font-bold text-slate-400 whitespace-nowrap">ชื่อ-นามสกุล:</span>
-            <div className="flex-1 border-b border-slate-900 min-h-[24px]"></div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-end gap-2 text-sm">
-              <span className="font-bold text-slate-400 whitespace-nowrap">ชั้น:</span>
-              <div className="flex-1 border-b border-slate-900 min-h-[24px]"></div>
-            </div>
-            <div className="flex items-end gap-2 text-sm">
-              <span className="font-bold text-slate-400 whitespace-nowrap">เลขที่:</span>
-              <div className="flex-1 border-b border-slate-900 min-h-[24px]"></div>
-            </div>
+        <div className="mb-8 border-b border-black pb-4">
+          <h1 className="text-2xl font-black text-center mb-4">{exercise.title}</h1>
+          <div className="bg-slate-50 p-4 border-l-4 border-black text-sm italic">
+            <span className="font-bold not-italic mr-2">คำชี้แจง:</span>
+            {content.description}
           </div>
         </div>
 
         {/* Items */}
         <div className="space-y-12">
-          {content.items.map((item: any, idx: number) => (
-            <div key={idx} className="break-inside-avoid">
-              <div className="flex gap-4 mb-4">
-                <span className="font-black text-2xl text-slate-900">{idx + 1}.</span>
-                <p className="text-xl font-bold leading-relaxed text-slate-800">{item.question}</p>
-              </div>
-
-              {item.options ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 ml-10">
-                  {item.options.map((opt: string, oIdx: number) => (
-                    <div key={oIdx} className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full border-2 border-slate-900 flex items-center justify-center font-bold text-sm shrink-0">
-                        {String.fromCharCode(65 + oIdx)}
+          {content.sections ? (
+            content.sections.map((sec: any, sIdx: number) => (
+              <div key={sIdx} className="mb-12">
+                <h3 className="text-xl font-bold text-center border-b border-black pb-2 mb-4">ตอนที่ {sIdx + 1}: {sec.title}</h3>
+                <div className="space-y-8">
+                  {sec.items.map((item: any, idx: number) => (
+                    <div key={idx} className="break-inside-avoid">
+                      <div className="flex gap-4 mb-4">
+                        <span className="font-bold text-lg">{idx + 1}.</span>
+                        <p className="text-lg font-bold leading-relaxed">{item.question}</p>
                       </div>
-                      <span className="text-lg">{opt}</span>
+                      {item.options ? (
+                        <div className="grid grid-cols-2 gap-x-12 gap-y-4 ml-10">
+                          {item.options.map((opt: string, oIdx: number) => (
+                            <div key={oIdx} className="flex items-center gap-3">
+                              <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center font-bold text-xs shrink-0">
+                                {String.fromCharCode(65 + oIdx)}
+                              </div>
+                              <span className="text-base italic">{opt}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="ml-10 border-b border-dotted border-slate-300 h-10 w-full mb-4"></div>
+                      )}
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="ml-10 mt-6 h-20 border-b border-dashed border-slate-300"></div>
-              )}
-            </div>
-          ))}
+              </div>
+            ))
+          ) : (
+            content.items.map((item: any, idx: number) => (
+              <div key={idx} className="break-inside-avoid">
+                <div className="flex gap-4 mb-4">
+                  <span className="font-bold text-lg">{idx + 1}.</span>
+                  <p className="text-lg font-bold leading-relaxed">{item.question}</p>
+                </div>
+                {item.options ? (
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-4 ml-10">
+                    {item.options.map((opt: string, oIdx: number) => (
+                      <div key={oIdx} className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center font-bold text-xs shrink-0">
+                          {String.fromCharCode(65 + oIdx)}
+                        </div>
+                        <span className="text-base italic">{opt}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="ml-10 border-b border-dotted border-slate-300 h-10 w-full mb-4"></div>
+                )}
+              </div>
+            ))
+          )}
         </div>
 
         {/* Footer */}
-        <footer className="mt-24 pt-8 border-t border-slate-100 flex justify-between items-center opacity-40 text-[10px] font-bold">
-          <div>ตัวชี้วัด: {exercise.indicators}</div>
-          <div>สร้างผ่านระบบ EduGen AI</div>
+        <footer className="mt-12 pt-6 border-t border-black flex justify-between items-center text-[12px] font-bold">
+          <div className="flex gap-4">
+            <span>รายวิชา: {exercise.course}</span>
+            <span>ระดับชั้น: {exercise.grade}</span>
+          </div>
+          <span className="text-[9px] text-slate-400 italic uppercase">EduGen AI System</span>
         </footer>
       </div>
 

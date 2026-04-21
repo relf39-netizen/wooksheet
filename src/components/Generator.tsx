@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Sparkles, Save, Printer, ChevronLeft, Loader2, Wand2, Type, CheckSquare, Layers, FileText } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, Printer, ChevronLeft, Loader2, Wand2, Type, CheckSquare, Layers, FileText } from 'lucide-react';
 import { User, ExerciseType } from '../types';
 import { GoogleGenAI, Type as GeminiType } from "@google/genai";
 
@@ -105,7 +105,7 @@ const CORE_SUBJECTS = [
   'ภาษาต่างประเทศ (ภาษาอังกฤษ)'
 ];
 
-export default function Generator({ user, onNavigate }: { user: User, onNavigate: (page: string) => void }) {
+export default function Generator({ user, onNavigate, exerciseId }: { user: User, onNavigate: (page: string, param?: string) => void, exerciseId?: string | null }) {
   const [formData, setFormData] = useState({
     title: '',
     course: '',
@@ -118,6 +118,33 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
   const [result, setResult] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [combinedResults, setCombinedResults] = useState<any[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (exerciseId) {
+      const apiBase = '/server.cjs';
+      fetch(`${apiBase}/api/exercises`)
+        .then(res => res.json())
+        .then(data => {
+          const found = data.find((ex: any) => ex.id === Number(exerciseId));
+          if (found) {
+            const content = JSON.parse(found.content);
+            if (Array.isArray(content.sections)) {
+              setCombinedResults(content.sections);
+            } else {
+              setResult(content);
+            }
+            setFormData({
+              ...formData,
+              title: found.title,
+              course: found.course,
+              grade: found.grade
+            });
+            setIsEditing(true);
+          }
+        });
+    }
+  }, [exerciseId]);
 
   const handleGenerate = async () => {
     if (!user.ai_key) {
@@ -130,37 +157,9 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
 
     try {
       const ai = new GoogleGenAI({ apiKey: user.ai_key });
-      
-      const systemInstruction = `You are a professional educational content creator for Thai ministry of education. 
-      Generate a set of exercises in Thai language strictly based on the Thai Core Curriculum Standards (หลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน).
-      The output must be a valid JSON object matching the requested schema.
-      Current Date: ${new Date().toISOString()}`;
+      const systemInstruction = `You are a professional educational content creator for Thai ministry of education. Generate exercises in Thai based on the Thai Core Curriculum Standards.`;
 
-      const prompt = `สร้างแบบฝึกหัดเรื่อง: "${formData.topic}" 
-      สำหรับวิชา: ${formData.course} 
-      ระดับชั้น: ${formData.grade} 
-      โดยให้อ้างอิงมาตรฐานและตัวชี้วัดตามหลักสูตรแกนกลางสถานศึกษาที่เหมาะสมกับระดับชั้นโดยอัตโนมัติ
-      รูปแบบ: ${formData.type}
-      จำนวนข้อ: ${formData.count} ข้อ
-      
-      คำแนะนำเพิ่มเติมตามรูปแบบ:
-      - ถ้าเป็น 'matching' (จับคู่): ให้สร้างรายการฝั่งซ้ายและฝั่งขวาที่สอดคล้องกัน โดยใน items ให้มี field "left" และ "right"
-      - ถ้าเป็น 'math_steps' (แสดงวิธีทำ): ให้สร้างโจทย์คณิตศาสตร์ที่เน้นการแสดงวิธีทำอย่างละเอียด
-      
-      ให้ตอบกลับเป็น JSON ภาษาไทยที่มีโครงสร้างดังนี้:
-      {
-        "title": "หัวข้อที่สร้าง",
-        "description": "คำชี้แจงสำหรับนักเรียน (ให้สอดคล้องกับรูปแบบแบบฝึกหัดและหลักสูตรแกนกลาง)",
-        "items": [
-          {
-            "question": "โจทย์คำถาม หรือ สิ่งที่อยู่ฝั่งซ้าย (ถ้าเป็นจับคู่)",
-            "options": ["ตัวเลือก 1", "ตัวเลือก 2", "ตัวเลือก 3", "ตัวเลือก 4"], // สำหรับปรนัยเท่านั้น
-            "answer": "คำตอบที่ถูกต้อง หรือ สิ่งที่อยู่ฝั่งขวา (ถ้าเป็นจับคู่) หรือ เฉลยวิธีทำ (ถ้าเป็นคณิตศาสตร์)",
-            "explanation": "คำอธิบายเหตุผลหรือขั้นตอน",
-            "math_hint": "แนวทางการเขียนวิธีทำ (ถ้าเป็นคณิตศาสตร์)"
-          }
-        ]
-      }`;
+      const prompt = `สร้างแบบฝึกหัดเรื่อง: "${formData.topic}" สำหรับวิชา: ${formData.course} ระดับชั้น: ${formData.grade} รูปแบบ: ${formData.type} จำนวน: ${formData.count} ข้อ ให้ตอบกลับเป็น JSON ภาษาไทย`;
 
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
@@ -192,35 +191,35 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
         },
       });
 
-      const data = JSON.parse(response.text);
-      setResult(data);
+      setResult(JSON.parse(response.text));
     } catch (error: any) {
-      console.error(error);
-      alert('เกิดข้อผิดพลาดในการสร้าง: ' + error.message);
+      alert('เกิดข้อผิดพลาด: ' + error.message);
     } finally {
       setGenerating(false);
     }
   };
 
   const handleSave = async () => {
-    if (!result) return;
+    const finalContent = combinedResults.length > 0 ? { sections: combinedResults } : result;
+    if (!finalContent) return;
+    
     setSaving(true);
     try {
       const apiBase = '/server.cjs';
-      const res = await fetch(`${apiBase}/api/exercises`, {
-        method: 'POST',
+      const url = isEditing ? `${apiBase}/api/exercises/${exerciseId}` : `${apiBase}/api/exercises`;
+      const res = await fetch(url, {
+        method: isEditing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: result.title || formData.title,
+          title: formData.title || result?.title || combinedResults[0]?.title || 'แบบฝึกหัดใหม่',
           course: formData.course,
           grade: formData.grade,
           indicators: 'อ้างอิงหลักสูตรแกนกลางอัตโนมัติ',
-          content: result
+          content: finalContent
         })
       });
-      const data = await res.json();
-      if (data.success) {
-        alert('บันทึกสำเร็จ');
+      if (res.ok) {
+        alert(isEditing ? 'อัปเดตสำเร็จ' : 'บันทึกสำเร็จ');
         onNavigate('history');
       }
     } catch (err) {
@@ -244,68 +243,64 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
 
   const printArea = () => {
     return (
-      <div id="printable-area" className="w-full bg-white text-black p-12 max-w-[21cm] min-h-[29.7cm] flex flex-col font-['Sarabun'] translate-y-0">
-        {/* Student Fields Header */}
-        <div className="flex justify-between items-center border-b-2 border-black pb-4 mb-8">
-          <div className="flex-1 flex gap-4 text-[13px] font-bold whitespace-nowrap overflow-hidden">
-            <span className="shrink-0">ชื่อ-นามสกุล: ................................................................................................</span>
-            <span className="shrink-0">เลขที่: .................</span>
-            <span className="shrink-0">ชั้นประถมศึกษาปีที่: ................. / .................</span>
-          </div>
-        </div>
-
-        {/* Exercises Content */}
-        <div className="flex-1">
-          {combinedResults.length > 0 ? (
-            combinedResults.map((res, rIdx) => (
-              <ExerciseRender key={rIdx} result={res} exerciseType={res.type} sectionIdx={rIdx + 1} />
-            ))
-          ) : result ? (
-            <ExerciseRender result={result} exerciseType={formData.type} />
-          ) : null}
-        </div>
-
-        {/* Teacher Credits Footer */}
-        <div className="mt-12 pt-6 border-t border-black">
-          <div className="flex justify-between items-center text-[12px] font-bold">
-            <div className="flex gap-4">
-              <span>รายวิชา: {formData.course}</span>
-              <span>สร้างโดย: {user.name} {user.surname}</span>
-              <span>ตำแหน่ง: {user.position || user.school || 'ครูผู้สอน'}</span>
+      <div id="printable-area" className="print-container bg-white text-black font-['Sarabun']">
+        <div className="printable-content p-12 min-h-[297mm] flex flex-col">
+          <div className="flex justify-between items-center border-b-2 border-black pb-4 mb-8">
+            <div className="flex-1 flex gap-4 text-[13px] font-bold whitespace-nowrap overflow-hidden">
+              <span className="shrink-0">ชื่อ-นามสกุล: ................................................................................................</span>
+              <span className="shrink-0">เลขที่: .................</span>
+              <span className="shrink-0">ชั้นประถมศึกษาปีที่: ................. / .................</span>
             </div>
-            <span className="text-[9px] text-slate-400 italic uppercase">Generated by EduGen AI</span>
+          </div>
+          <div className="flex-1">
+            {combinedResults.length > 0 ? (
+              combinedResults.map((res, rIdx) => (
+                <ExerciseRender key={rIdx} result={res} exerciseType={res.type} sectionIdx={rIdx + 1} />
+              ))
+            ) : result ? (
+              <ExerciseRender result={result} exerciseType={formData.type} />
+            ) : null}
+          </div>
+          <div className="mt-12 pt-6 border-t border-black">
+            <div className="flex justify-between items-center text-[12px] font-bold">
+              <div className="flex gap-4">
+                <span>รายวิชา: {formData.course}</span>
+                <span>สร้างโดย: {user.name} {user.surname}</span>
+                <span>ตำแหน่ง: {user.position || user.school || 'ครูผู้สอน'}</span>
+              </div>
+              <span className="text-[9px] text-slate-400 italic uppercase">Generated by EduGen AI</span>
+            </div>
           </div>
         </div>
-
-        <button 
-          onClick={() => window.print()}
-          className="no-print fixed bottom-10 right-10 bg-indigo-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-50"
-          title="Print Document"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-        </button>
-
         <style>{`
+          @media screen {
+            .print-container {
+              width: 210mm;
+              height: fit-content;
+              box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+              transform: scale(0.65);
+              transform-origin: top center;
+              margin-bottom: -150px;
+            }
+          }
           @media print {
-            body * { visibility: hidden; background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            #printable-area, #printable-area * { visibility: visible; }
+            body { margin: 0; padding: 0; }
+            body > *:not(.print-root-container) { display: none !important; }
+            .print-root-container { display: block !important; width: 100% !important; }
             #printable-area { 
-              position: absolute !important; 
-              left: 0 !important; 
-              top: 0 !important; 
+              display: block !important; 
               width: 210mm !important; 
-              height: 297mm !important; 
+              min-height: 297mm !important;
               margin: 0 !important; 
-              padding: 2.5cm !important; 
-              box-shadow: none !important; 
-              border: none !important; 
-              overflow: visible !important;
+              padding: 0 !important;
+              box-shadow: none !important;
+              transform: none !important;
+              position: static !important;
+              visibility: visible !important;
             }
+            #printable-area * { visibility: visible !important; }
             .no-print { display: none !important; }
-            @page { 
-              size: A4; 
-              margin: 0; 
-            }
+            @page { size: A4; margin: 0; }
           }
         `}</style>
       </div>
@@ -316,175 +311,62 @@ export default function Generator({ user, onNavigate }: { user: User, onNavigate
     <div className="space-y-8 pb-20">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button onClick={() => onNavigate('home')} className="p-2 hover:bg-white rounded-lg border border-slate-200 transition-all text-slate-500 shadow-sm">
-            <ChevronLeft size={20} />
-          </button>
+          <button onClick={() => onNavigate('home')} className="p-2 hover:bg-white rounded-lg border border-slate-200 transition-all text-slate-500 shadow-sm"><ChevronLeft size={20} /></button>
           <div>
             <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-0.5">Workspace</span>
-            <h1 className="text-2xl font-bold text-slate-900">สร้างแบบฝึกหัดด้วย AI</h1>
+            <h1 className="text-2xl font-bold text-slate-900">{isEditing ? 'แก้ไขแบบฝึกหัด' : 'สร้างแบบฝึกหัดด้วย AI'}</h1>
           </div>
         </div>
-        {!result && (
-          <div className="hidden md:flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
-            <Wand2 size={16} className="text-indigo-500" />
-            <span className="text-xs font-bold text-slate-600">ระบบพร้อมประมวลผล</span>
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-12 gap-8">
-        {/* Input Form (Left Column) */}
-        <div className="col-span-12 lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-            <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <span className="w-1 h-4 bg-indigo-500 rounded-full"></span>
-              ตั้งค่าการสร้างแบบฝึก
-            </h3>
-            
+        <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
+          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2"><span className="w-1 h-4 bg-indigo-500 rounded-full"></span>ตั้งค่า</h3>
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 ml-1">ระดับชั้น</label>
-                  <select 
-                    value={formData.grade}
-                    onChange={(e) => setFormData({...formData, grade: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
-                  >
-                    {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 ml-1">รายวิชา</label>
-                  <div className="relative">
-                    <input 
-                      list="subjects"
-                      value={formData.course}
-                      onChange={(e) => setFormData({...formData, course: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      placeholder="เลือกหรือระบุวิชา"
-                    />
-                    <datalist id="subjects">
-                      {CORE_SUBJECTS.map(s => <option key={s} value={s} />)}
-                    </datalist>
-                  </div>
-                </div>
+                <select value={formData.grade} onChange={(e) => setFormData({...formData, grade: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm">
+                  {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+                <input list="subjects" value={formData.course} onChange={(e) => setFormData({...formData, course: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm" placeholder="วิชา" />
+                <datalist id="subjects">{CORE_SUBJECTS.map(s => <option key={s} value={s} />)}</datalist>
               </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 ml-1">หัวข้อบทเรียน</label>
-                <input 
-                  value={formData.topic}
-                  onChange={(e) => setFormData({...formData, topic: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="เช่น การแยกสาร, ร่างกายมนุษย์"
-                />
+              <input value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm" placeholder="หัวข้อบทเรียน" />
+              <div className="flex gap-4">
+                <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value as ExerciseType})} className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm">
+                  {EXERCISE_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                </select>
+                <input type="number" min="1" max="20" value={formData.count} onChange={(e) => setFormData({...formData, count: parseInt(e.target.value)})} className="w-20 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm" />
               </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2 ml-1">รูปแบบ & จำนวน</label>
-                <div className="flex gap-4">
-                  <select 
-                    value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value as ExerciseType})}
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {EXERCISE_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-                  </select>
-                  <input 
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={formData.count}
-                    onChange={(e) => setFormData({...formData, count: parseInt(e.target.value)})}
-                    className="w-20 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <button 
-                  onClick={handleGenerate}
-                  disabled={generating || !formData.topic}
-                  className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 uppercase tracking-widest disabled:opacity-50"
-                >
-                  {generating ? (
-                    <Loader2 className="animate-spin" size={20} />
-                  ) : (
-                    <Wand2 size={20} />
-                  )}
-                  <span>{generating ? 'กำลังประมวลผล...' : 'สร้างอัตโนมัติด้วย AI'}</span>
-                </button>
-              </div>
+              <button onClick={handleGenerate} disabled={generating} className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest disabled:opacity-50">
+                {generating ? <Loader2 className="animate-spin" size={20} /> : <Wand2 size={20} />}
+                <span>{generating ? 'กำลังสร้าง...' : 'สร้างด้วย AI'}</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Preview Area (Right Column) */}
-        <div className="col-span-12 lg:col-span-7 flex flex-col min-h-[600px]">
+        <div className="col-span-12 lg:col-span-8 flex flex-col">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 h-full flex flex-col overflow-hidden">
             <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
               <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">Document Preview</span>
-              {result && (
-                <div className="flex gap-2">
-                  <button 
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="px-4 py-1.5 bg-white border border-slate-300 rounded-lg text-[10px] font-bold uppercase transition-colors hover:bg-slate-50"
-                  >
-                    {saving ? 'Saving...' : 'บันทึกฐานข้อมูล'}
-                  </button>
-                  <button 
-                    onClick={() => window.print()}
-                    className="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-[10px] font-bold uppercase transition-colors hover:bg-indigo-700"
-                  >
-                    พิมพ์ (PDF)
-                  </button>
-                </div>
-              )}
+              <div className="flex gap-2">
+                <button onClick={handleSave} disabled={saving} className="px-4 py-1.5 bg-white border border-slate-300 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-50">{saving ? 'Saving...' : 'บันทึกฐานข้อมูล'}</button>
+                <button onClick={() => window.print()} className="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-[10px] font-bold uppercase hover:bg-indigo-700">พิมพ์ (PDF)</button>
+              </div>
             </div>
-
             <div className="flex-1 p-8 bg-slate-100 overflow-y-auto flex justify-center">
-              {!result && !generating && combinedResults.length === 0 ? (
-                <div className="self-center flex flex-col items-center text-slate-400 gap-4">
-                  <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center">
-                    <Sparkles size={32} className="opacity-50" />
+              <div className="flex flex-col gap-4 print-root-container">
+                {result && (
+                  <div className="flex justify-center gap-2 mb-4 no-print grow-0">
+                    <button onClick={handleAddSection} className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2">
+                      <Layers size={14} /> เพิ่มเป็นส่วนถัดไป
+                    </button>
+                    <button onClick={handleClear} className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-red-100 hover:bg-red-600 hover:text-white transition-all">ล้างข้อมูล</button>
                   </div>
-                  <p className="text-sm font-bold uppercase tracking-widest">Awaiting Generator</p>
-                </div>
-              ) : generating ? (
-                <div className="w-full bg-white shadow-xl h-full p-10 max-w-[600px] animate-pulse flex flex-col gap-8">
-                  <div className="h-10 bg-slate-100 rounded w-full mx-auto mb-8 border-b-2 border-slate-200 pb-4"></div>
-                  <div className="space-y-6">
-                    {[1,2,3,4].map(i => (
-                      <div key={i} className="space-y-3">
-                        <div className="h-4 bg-slate-50 rounded w-3/4"></div>
-                        <div className="h-4 bg-slate-50 rounded w-1/2"></div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4">
-                  {result && (
-                    <div className="flex justify-center gap-2 mb-4 no-print">
-                      <button 
-                        onClick={handleAddSection}
-                        className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2"
-                      >
-                        <Layers size={14} />
-                        เพิ่มเป็นส่วนถัดไป (Add Section)
-                      </button>
-                      <button 
-                        onClick={handleClear}
-                        className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-100 hover:bg-red-600 hover:text-white transition-all"
-                      >
-                        ล้างข้อมูลทั้งหมด
-                      </button>
-                    </div>
-                  )}
-                  {printArea()}
-                </div>
-              )}
+                )}
+                {printArea()}
+              </div>
             </div>
           </div>
         </div>

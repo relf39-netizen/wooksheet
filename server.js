@@ -269,6 +269,30 @@ async function startServer() {
     } catch (error) { res.status(500).send(); }
   });
 
+  app.put('/api/exercises/:id', async (req, res) => {
+    const user = req.session?.user;
+    if (!user) return res.status(401).send();
+    const { id } = req.params;
+    const { title, course, grade, content } = req.body;
+    try {
+      await pool.execute(
+        'UPDATE exercises SET title = ?, course = ?, grade = ?, content = ? WHERE id = ? AND teacher_id = ?',
+        [title, course, grade, JSON.stringify(content), id, user.id]
+      );
+      res.json({ success: true });
+    } catch (error) { res.status(500).send(); }
+  });
+
+  app.delete('/api/exercises/:id', async (req, res) => {
+    const user = req.session?.user;
+    if (!user) return res.status(401).send();
+    const { id } = req.params;
+    try {
+      await pool.execute('DELETE FROM exercises WHERE id = ? AND teacher_id = ?', [id, user.id]);
+      res.json({ success: true });
+    } catch (error) { res.status(500).send(); }
+  });
+
   app.post('/api/profile/key', async (req, res) => {
     const user = req.session?.user;
     if (!user) return res.status(401).send();

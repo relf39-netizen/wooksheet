@@ -84,8 +84,8 @@ export default function App() {
     }
 
     switch (currentPage) {
-      case 'generate': return <Generator user={user} onNavigate={navigateTo} />;
-      case 'history': return <ExerciseList onNavigate={navigateTo} />;
+    case 'generate': return <Generator user={user} onNavigate={navigateTo} exerciseId={activeParam} />;
+    case 'history': return <ExerciseList onNavigate={navigateTo} />;
       case 'print': return <PrintView exerciseId={activeParam} onNavigate={navigateTo} />;
       default: return <TeacherDashboard user={user} onNavigate={navigateTo} onUserUpdate={onUserUpdate} />;
     }
