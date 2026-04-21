@@ -106,7 +106,7 @@ function ExerciseRender({
 
       <div className="space-y-8">
         {result.items.map((item: any, idx: number) => (
-          <div key={idx} className={`space-y-4 relative group/item ${editable ? 'p-4 border border-transparent hover:border-slate-100 rounded-xl hover:bg-slate-50/50 transition-all' : ''}`}>
+          <div key={idx} className={`space-y-4 relative group/item break-inside-avoid ${editable ? 'p-4 border border-transparent hover:border-slate-100 rounded-xl hover:bg-slate-50/50 transition-all' : ''}`}>
             {editable && (
               <div className="absolute -left-12 top-4 flex flex-col gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity no-print">
                 <button 
@@ -538,72 +538,116 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
   const printArea = () => {
     return (
       <div id="printable-area" className="print-container bg-white text-black font-sarabun">
-        <div className="printable-content p-12 min-h-[297mm] flex flex-col text-[16pt] leading-normal">
-          <div className="flex items-center border-b-2 border-black pb-4 mb-8 text-[13px] font-bold w-full gap-6">
-            <div className="flex items-center gap-2 flex-[2]">
-              <span className="shrink-0">ชื่อ-นามสกุล:</span>
-              <div className="border-b border-dotted border-black flex-1 h-4 min-w-[150px]"></div>
+        {/* Fixed Header & Footer for Pagination (CSS handles visibility on page 1) */}
+        <div className="subsequent-header no-screen fixed top-0 left-0 right-0 px-12 pt-8 pb-4 bg-white flex items-center justify-between pointer-events-none z-[500] border-b-2 border-black">
+          <div className="text-[14px] font-bold uppercase tracking-tight">แบบฝึกหัด: {formData.title || 'ไม่มีหัวข้อ'}</div>
+          <div className="page-number-display text-[12px] font-bold"></div>
+        </div>
+
+        <div className="print-footer no-screen fixed bottom-0 left-0 right-0 h-24 px-12 bg-white flex flex-col justify-center border-t border-black z-[500] pointer-events-none">
+          <div className="flex justify-between items-center text-[11px] font-bold">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
+              <span className="whitespace-nowrap">รายวิชา: {formData.course}</span>
+              <span className="whitespace-nowrap">สร้างโดย: {user.name} {user.surname}</span>
+              <span className="whitespace-nowrap">ตำแหน่ง: {user.position || user.school || 'ครูผู้สอน'}</span>
             </div>
-            <div className="flex items-center gap-2 flex-1 max-w-[100px]">
-              <span className="shrink-0">เลขที่:</span>
-              <div className="border-b border-dotted border-black flex-1 h-4"></div>
-            </div>
-            <div className="flex items-center gap-2 flex-1 max-w-[130px]">
-              <span className="shrink-0">ชั้น:</span>
-              <div className="border-b border-dotted border-black flex-1 h-4"></div>
-              <span className="shrink-0">/</span>
-              <div className="border-b border-dotted border-black flex-1 h-4"></div>
-            </div>
-          </div>
-          <div className="printable-body">
-            {combinedResults.length > 0 ? (
-              combinedResults.map((res, rIdx) => {
-                const prevItemsCount = combinedResults.slice(0, rIdx).reduce((acc, curr) => acc + curr.items.length, 0);
-                const startIdx = prevItemsCount + 1;
-                return (
-                  <ExerciseRender 
-                    key={rIdx} 
-                    result={res} 
-                    exerciseType={res.type || formData.type} 
-                    sectionIdx={rIdx + 1} 
-                    startIdx={startIdx} 
-                    editable={true}
-                    onUpdateItem={(iIdx, f, v) => updateItem(rIdx, iIdx, f, v)}
-                    onAddItem={() => addItemToSection(rIdx)}
-                    onAddAiItems={(t, c) => handleAddAiItemsToSection(rIdx, t, c)}
-                    onRemoveItem={(iIdx) => removeItemFromSection(rIdx, iIdx)}
-                    onUpdateHeader={(f, v) => updateHeader(rIdx, f, v)}
-                  />
-                );
-              })
-            ) : result ? (
-              <ExerciseRender 
-                result={result} 
-                exerciseType={formData.type} 
-                editable={true}
-                onUpdateItem={(iIdx, f, v) => updateItem(null, iIdx, f, v)}
-                onAddItem={() => addItemToSection(null)}
-                onAddAiItems={(t, c) => handleAddAiItemsToSection(null, t, c)}
-                onRemoveItem={(iIdx) => removeItemFromSection(null, iIdx)}
-                onUpdateHeader={(f, v) => updateHeader(null, f, v)}
-              />
-            ) : (
-              <div className="h-64 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-3xl text-slate-300 font-bold uppercase tracking-widest text-sm">
-                ยังไม่มีเนื้อหาแบบฝึกหัด
-              </div>
-            )}
-          </div>
-          <div className="mt-auto pt-6 border-t border-black">
-            <div className="flex justify-between items-center text-[11px] font-bold">
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
-                <span className="whitespace-nowrap">รายวิชา: {formData.course}</span>
-                <span className="whitespace-nowrap">สร้างโดย: {user.name} {user.surname}</span>
-                <span className="whitespace-nowrap">ตำแหน่ง: {user.position || user.school || 'ครูผู้สอน'}</span>
-              </div>
-              <span className="text-[9px] text-slate-400 italic uppercase tracking-tighter shrink-0 ml-4">Generated by EduGen AI System</span>
-            </div>
+            <span className="text-[9px] text-slate-400 italic uppercase tracking-tighter shrink-0 ml-4">Generated by EduGen AI System</span>
           </div>
         </div>
+
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="no-screen print-header-row">
+              <td><div className="h-[25mm]"></div></td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div className="printable-content px-12 py-10 min-h-[297mm] flex flex-col text-[16pt] leading-normal bg-white relative">
+                  {/* First Page Specific Cover to hide fixed header on Page 1 */}
+                  <div className="first-page-cover no-screen absolute top-0 left-0 right-0 h-[40mm] bg-white z-[510]"></div>
+
+                  <div className="flex items-center border-b-2 border-black pb-4 mb-8 text-[13px] font-bold w-full gap-6 relative z-[520] bg-white">
+                    <div className="flex items-center gap-2 flex-[2]">
+                      <span className="shrink-0">ชื่อ-นามสกุล:</span>
+                      <div className="border-b border-dotted border-black flex-1 h-4 min-w-[150px]"></div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-1 max-w-[100px]">
+                      <span className="shrink-0">เลขที่:</span>
+                      <div className="border-b border-dotted border-black flex-1 h-4"></div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-1 max-w-[130px]">
+                      <span className="shrink-0">ชั้น:</span>
+                      <div className="border-b border-dotted border-black flex-1 h-4"></div>
+                      <span className="shrink-0">/</span>
+                      <div className="border-b border-dotted border-black flex-1 h-4"></div>
+                    </div>
+                  </div>
+
+                  <div className="printable-body flex-1 relative z-[520]">
+                    {combinedResults.length > 0 ? (
+                      combinedResults.map((res, rIdx) => {
+                        const prevItemsCount = combinedResults.slice(0, rIdx).reduce((acc, curr) => acc + curr.items.length, 0);
+                        const startIdx = prevItemsCount + 1;
+                        return (
+                          <div key={rIdx} className="break-inside-auto">
+                            <ExerciseRender 
+                              result={res} 
+                              exerciseType={res.type || formData.type} 
+                              sectionIdx={rIdx + 1} 
+                              startIdx={startIdx} 
+                              editable={true}
+                              onUpdateItem={(iIdx, f, v) => updateItem(rIdx, iIdx, f, v)}
+                              onAddItem={() => addItemToSection(rIdx)}
+                              onAddAiItems={(t, c) => handleAddAiItemsToSection(rIdx, t, c)}
+                              onRemoveItem={(iIdx) => removeItemFromSection(rIdx, iIdx)}
+                              onUpdateHeader={(f, v) => updateHeader(rIdx, f, v)}
+                            />
+                          </div>
+                        );
+                      })
+                    ) : result ? (
+                      <div className="break-inside-auto">
+                        <ExerciseRender 
+                          result={result} 
+                          exerciseType={formData.topic ? formData.type : 'multiple_choice'} 
+                          editable={true}
+                          onUpdateItem={(iIdx, f, v) => updateItem(null, iIdx, f, v)}
+                          onAddItem={() => addItemToSection(null)}
+                          onAddAiItems={(t, c) => handleAddAiItemsToSection(null, t, c)}
+                          onRemoveItem={(iIdx) => removeItemFromSection(null, iIdx)}
+                          onUpdateHeader={(f, v) => updateHeader(null, f, v)}
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-64 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-3xl text-slate-300 font-bold uppercase tracking-widest text-sm">
+                        ยังไม่มีเนื้อหาแบบฝึกหัด
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-8 pt-6 border-t border-black no-print">
+                    <div className="flex justify-between items-center text-[11px] font-bold">
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
+                        <span className="whitespace-nowrap">รายวิชา: {formData.course}</span>
+                        <span className="whitespace-nowrap">สร้างโดย: {user.name} {user.surname}</span>
+                        <span className="whitespace-nowrap">ตำแหน่ง: {user.position || user.school || 'ครูผู้สอน'}</span>
+                      </div>
+                      <span className="text-[9px] text-slate-400 italic uppercase tracking-tighter shrink-0 ml-4">Generated by EduGen AI System</span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr className="no-screen print-footer-row">
+              <td><div className="h-[30mm]"></div></td>
+            </tr>
+          </tfoot>
+        </table>
+
         <style>{`
           @media screen {
             .print-container {
@@ -618,22 +662,52 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
           @media print {
             .print-container {
               width: 210mm !important;
-              min-height: 297mm !important;
-              margin: 0 !important;
               padding: 0 !important;
-            }
-            .printable-content {
-              padding: 15mm !important;
-              min-height: 297mm !important;
-              width: 100% !important;
+              margin: 0 !important;
               background: white !important;
+              box-shadow: none !important;
+              transform: none !important;
             }
-            .printable-body {
+            .no-print { display: none !important; }
+            .first-page-cover {
               display: block !important;
-              width: 100% !important;
+              position: absolute;
+              top: -30mm;
+              left: 0;
+              width: 100%;
+              height: 45mm !important;
+              background: white !important;
+              z-index: 550;
             }
-            @page { size: A4; margin: 0; }
+            .subsequent-header {
+              display: flex !important;
+              top: 5mm;
+              padding-left: 15mm;
+              padding-right: 15mm;
+            }
+            .print-footer {
+              display: flex !important;
+              bottom: 5mm;
+              padding-left: 15mm;
+              padding-right: 15mm;
+            }
+            .page-number-display::after {
+              content: "หน้า " counter(page);
+            }
+            body { 
+              background: white !important; 
+              counter-reset: page;
+            }
+            @page {
+              size: A4;
+              margin: 10mm 0;
+            }
+            .break-inside-avoid {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
           }
+          .no-screen { display: none; }
         `}</style>
       </div>
     );
