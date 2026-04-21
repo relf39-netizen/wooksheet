@@ -16,25 +16,25 @@ function ExerciseRender({ result, exerciseType, sectionIdx }: { result: any, exe
   return (
     <div className="mb-12 last:mb-0">
       <div className="text-center border-b border-black pb-4 mb-6">
-        <h3 className="text-xl font-bold">
+        <h3 className="text-[18pt] font-bold">
           {sectionIdx && <span>ตอนที่ {sectionIdx}: </span>}
           {result.title}
         </h3>
         {result.indicators && (
-          <div className="text-[10px] mt-1 text-slate-500 font-bold uppercase tracking-tight italic">
+          <div className="text-[12pt] mt-1 text-slate-500 font-bold uppercase tracking-tight italic">
             มาตรฐาน/ตัวชี้วัด: {result.indicators}
           </div>
         )}
       </div>
       
       <div className="mb-6 bg-slate-50 p-4 border-l-4 border-black">
-        <p className="text-sm font-bold leading-relaxed">{result.description}</p>
+        <p className="text-[14pt] font-bold leading-relaxed">{result.description}</p>
       </div>
 
       <div className="space-y-8">
         {result.items.map((item: any, idx: number) => (
           <div key={idx} className="space-y-4">
-            <div className="text-base font-bold leading-relaxed flex gap-3">
+            <div className="text-[16pt] font-bold leading-relaxed flex gap-3">
               <span className="shrink-0">{idx + 1}.</span>
               <div className="flex-1">
                 {exerciseType === 'matching' ? (
@@ -51,8 +51,8 @@ function ExerciseRender({ result, exerciseType, sectionIdx }: { result: any, exe
             {exerciseType === 'multiple_choice' && item.options && (
               <div className="grid grid-cols-2 gap-x-12 gap-y-3 pl-8">
                 {item.options.map((opt: string, oIdx: number) => (
-                  <div key={oIdx} className="flex items-center gap-2 text-sm italic">
-                    <div className="w-6 h-6 rounded-full border border-black flex items-center justify-center text-[11px] font-bold shrink-0">
+                  <div key={oIdx} className="flex items-center gap-3 italic">
+                    <div className="w-7 h-7 rounded-full border border-black flex items-center justify-center text-[12pt] font-bold shrink-0">
                       {String.fromCharCode(65 + oIdx)}
                     </div>
                     <span>{opt}</span>
@@ -63,14 +63,14 @@ function ExerciseRender({ result, exerciseType, sectionIdx }: { result: any, exe
 
             {exerciseType === 'math_steps' && (
               <div className="pl-8 space-y-5">
-                <p className="text-xs text-slate-500 font-bold">วิธีทำ:</p>
+                <p className="text-[14pt] text-slate-500 font-bold">วิธีทำ:</p>
                 <div className="space-y-4">
                   <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
                   <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
                   <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
                   <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
                   <div className="flex items-end gap-3 pt-2">
-                    <span className="text-xs font-black shrink-0">ตอบ:</span>
+                    <span className="text-[14pt] font-black shrink-0">ตอบ:</span>
                     <div className="border-b border-dotted border-slate-400 h-8 flex-1"></div>
                   </div>
                 </div>
@@ -253,8 +253,8 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
 
   const printArea = () => {
     return (
-      <div id="printable-area" className="print-container bg-white text-black font-['Sarabun']">
-        <div className="printable-content p-12 min-h-[297mm] flex flex-col">
+      <div id="printable-area" className="print-container bg-white text-black font-sarabun">
+        <div className="printable-content p-12 min-h-[297mm] flex flex-col text-[16pt] leading-normal">
           <div className="flex items-center border-b-2 border-black pb-4 mb-8 text-[13px] font-bold w-full gap-6">
             <div className="flex items-center gap-2 flex-[2]">
               <span className="shrink-0">ชื่อ-นามสกุล:</span>
