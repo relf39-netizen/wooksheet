@@ -20,6 +20,11 @@ function ExerciseRender({ result, exerciseType, sectionIdx }: { result: any, exe
           {sectionIdx && <span>ตอนที่ {sectionIdx}: </span>}
           {result.title}
         </h3>
+        {result.indicators && (
+          <div className="text-[10px] mt-1 text-slate-500 font-bold uppercase tracking-tight italic">
+            มาตรฐาน/ตัวชี้วัด: {result.indicators}
+          </div>
+        )}
       </div>
       
       <div className="mb-6 bg-slate-50 p-4 border-l-4 border-black">
@@ -159,7 +164,11 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
       const ai = new GoogleGenAI({ apiKey: user.ai_key });
       const systemInstruction = `You are a professional educational content creator for Thai ministry of education. Generate exercises in Thai based on the Thai Core Curriculum Standards.`;
 
-      const prompt = `สร้างแบบฝึกหัดเรื่อง: "${formData.topic}" สำหรับวิชา: ${formData.course} ระดับชั้น: ${formData.grade} รูปแบบ: ${formData.type} จำนวน: ${formData.count} ข้อ ให้ตอบกลับเป็น JSON ภาษาไทย`;
+      const prompt = `สร้างแบบฝึกหัดเรื่อง: "${formData.topic}" สำหรับวิชา: ${formData.course} ระดับชั้น: ${formData.grade} รูปแบบ: ${formData.type} จำนวน: ${formData.count} ข้อ 
+      สำคัญ: 
+      1. ให้ระบุ มาตรฐานและตัวชี้วัดแบบย่อ ในฟิลด์ indicators (ตัวอย่างเช่น "มาตรฐาน ค 1.1 ป.4/1, ป.4/2")
+      2. ในส่วนของ explanation สำหรับครู ให้เขียนคำอธิบายเหตุผลของคำตอบที่ชัดเจนและเข้าใจง่าย เพื่อให้คุณครูนำไปใช้อธิบายให้นักเรียนฟังต่อได้
+      ให้ตอบกลับเป็น JSON ภาษาไทย`;
 
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
@@ -172,6 +181,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
             properties: {
               title: { type: GeminiType.STRING },
               description: { type: GeminiType.STRING },
+              indicators: { type: GeminiType.STRING, description: "ตัวอย่าง: มาตรฐาน ค 1.1 ป.4/1 อ่านและเขียนจำนวนนับได้" },
               items: {
                 type: GeminiType.ARRAY,
                 items: {
@@ -182,11 +192,11 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
                     answer: { type: GeminiType.STRING },
                     explanation: { type: GeminiType.STRING }
                   },
-                  required: ["question", "answer"]
+                  required: ["question", "answer", "explanation"]
                 }
               }
             },
-            required: ["title", "description", "items"]
+            required: ["title", "description", "items", "indicators"]
           }
         },
       });
@@ -214,7 +224,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
           title: formData.title || result?.title || combinedResults[0]?.title || 'แบบฝึกหัดใหม่',
           course: formData.course,
           grade: formData.grade,
-          indicators: 'อ้างอิงหลักสูตรแกนกลางอัตโนมัติ',
+          indicators: result?.indicators || combinedResults[0]?.indicators || 'อ้างอิงหลักสูตรแกนกลางอัตโนมัติ',
           content: finalContent
         })
       });

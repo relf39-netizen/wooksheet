@@ -67,7 +67,12 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
 
           {/* Instructions */}
           <div className="mb-8 border-b border-black pb-4 text-center">
-            <h1 className="text-2xl font-black mb-4 uppercase tracking-tighter">{exercise.title}</h1>
+            <h1 className="text-2xl font-black mb-1 uppercase tracking-tighter">{exercise.title}</h1>
+            {content.indicators && (
+              <p className="text-[10px] text-slate-500 font-bold italic mb-4">
+                มาตรฐาน/ตัวชี้วัด: {content.indicators}
+              </p>
+            )}
             <div className="bg-slate-50 p-4 border-l-4 border-black text-sm italic text-left">
               <span className="font-bold not-italic mr-2">คำชี้แจง:</span>
               {content.description}
@@ -175,13 +180,33 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
       </div>
 
       {/* Answer Key - Not for Student */}
-      <div className="bg-white p-12 rounded-3xl border border-slate-200 no-print max-w-[800px] mx-auto opacity-50 hover:opacity-100 transition-opacity mb-12">
-        <h2 className="text-xl font-black mb-6 text-indigo-600 uppercase tracking-widest border-b border-indigo-100 pb-2">เฉลยแบบฝึกหัด (เฉพาะคุณครู)</h2>
-        <div className="grid grid-cols-4 gap-4">
-          {(content.sections ? content.sections.flatMap((s: any) => s.items) : content.items).map((item: any, idx: number) => (
-            <div key={idx} className="flex items-center gap-2 text-sm bg-slate-50 p-2 rounded-lg border border-slate-100">
-              <span className="font-bold text-slate-400 w-6">{idx + 1}.</span>
-              <span className="font-bold text-indigo-600">{item.answer}</span>
+      <div className="bg-white p-12 rounded-3xl border border-slate-200 no-print max-w-[900px] mx-auto mb-12">
+        <h2 className="text-xl font-black mb-6 text-indigo-600 uppercase tracking-widest border-b border-indigo-100 pb-2 flex justify-between items-end">
+          <span>เฉลยแบบฝึกหัด (เฉพาะคุณครู)</span>
+          <span className="text-[10px] text-slate-400 normal-case font-bold italic">มีคำอธิบายประกอบเพื่อใช้สื่อสารกับนักเรียน</span>
+        </h2>
+        <div className="space-y-6">
+          {(content.sections 
+            ? content.sections.flatMap((s: any) => s.items) 
+            : content.items).map((item: any, idx: number) => (
+            <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                  {idx + 1}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-xs font-black uppercase text-slate-400">คำตอบที่ถูกต้อง:</span>
+                    <span className="text-lg font-black text-indigo-700">{item.answer}</span>
+                  </div>
+                  {item.explanation && (
+                    <div className="text-sm bg-white p-3 rounded-lg border-l-4 border-indigo-500 text-slate-700 leading-relaxed shadow-sm italic">
+                      <span className="font-black text-indigo-600 not-italic block mb-1 text-[10px] uppercase tracking-wider">คำอธิบายสำหรับครู:</span>
+                      {item.explanation}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>
