@@ -13,7 +13,7 @@ export default function ExerciseList({ onNavigate }: { onNavigate: (page: string
 
   const fetchExercises = async () => {
     setLoading(true);
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     try {
       const res = await fetch(`${apiBase}/api/exercises`);
       const data = await res.json();
@@ -29,7 +29,7 @@ export default function ExerciseList({ onNavigate }: { onNavigate: (page: string
     e.stopPropagation();
     if (!confirm('ยืนยันการลบแบบฝึกหัดนี้?')) return;
     
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     try {
       const res = await fetch(`${apiBase}/api/exercises/${id}`, { method: 'DELETE' });
       if (res.ok) {

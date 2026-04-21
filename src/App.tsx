@@ -31,7 +31,7 @@ export default function App() {
   const [activeParam, setActiveParam] = useState<string | null>(null);
 
   useEffect(() => {
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     fetch(`${apiBase}/api/auth/me`)
       .then(res => res.json())
       .then(data => {
@@ -50,7 +50,7 @@ export default function App() {
   }, []);
 
   const handleLogout = async () => {
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     await fetch(`${apiBase}/api/auth/logout`, { method: 'POST' });
     setUser(null);
     setCurrentPage('login');

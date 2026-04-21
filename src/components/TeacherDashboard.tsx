@@ -8,7 +8,7 @@ export default function TeacherDashboard({ user, onNavigate, onUserUpdate }: { u
   const [exercises, setExercises] = useState<Exercise[]>([]);
 
   useEffect(() => {
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     fetch(`${apiBase}/api/exercises`)
       .then(res => res.json())
       .then(data => setExercises(data))
@@ -17,7 +17,7 @@ export default function TeacherDashboard({ user, onNavigate, onUserUpdate }: { u
 
   const handleUpdateKey = async () => {
     setUpdating(true);
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     const res = await fetch(`${apiBase}/api/profile/key`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

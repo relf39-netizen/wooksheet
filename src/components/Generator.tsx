@@ -141,7 +141,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
       setResult(null);
       setCombinedResults([]);
       setIsEditing(false);
-      const apiBase = '/server.cjs';
+      const apiBase = '';
       fetch(`${apiBase}/api/exercises/${exerciseId}`)
         .then(res => res.json())
         .then(found => {
@@ -242,7 +242,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
     
     setSaving(true);
     try {
-      const apiBase = '/server.cjs';
+      const apiBase = '';
       const url = isEditing && exerciseId ? `${apiBase}/api/exercises/${exerciseId}` : `${apiBase}/api/exercises`;
       const res = await fetch(url, {
         method: isEditing && exerciseId ? 'PUT' : 'POST',

@@ -15,7 +15,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
   });
 
   useEffect(() => {
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     fetch(`${apiBase}/api/exercises/${exerciseId}?t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
@@ -37,7 +37,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     const content = JSON.parse(exercise.content);
     const updatedContent = { ...content, fontSettings };
     
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     try {
       const res = await fetch(`${apiBase}/api/exercises/${exercise.id}`, {
         method: 'PUT',

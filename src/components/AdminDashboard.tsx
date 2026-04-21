@@ -19,7 +19,7 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
   }, []);
 
   const fetchTeachers = async () => {
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     const res = await fetch(`${apiBase}/api/admin/teachers`);
     const data = await res.json();
     setTeachers(data);
@@ -27,7 +27,7 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
   };
 
   const handleApprove = async (id: number, status: 'active' | 'rejected' | 'pending') => {
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     const res = await fetch(`${apiBase}/api/admin/approve`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -40,7 +40,7 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
   };
 
   const handleRoleChange = async (id: number, role: 'teacher' | 'admin') => {
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     const res = await fetch(`${apiBase}/api/admin/change-role`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -54,7 +54,7 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
 
   const handleDelete = async (id: number) => {
     if (!confirm('คุณต้องการลบสมาชิกรายนี้ใช่หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้')) return;
-    const apiBase = '/server.cjs';
+    const apiBase = '';
     const res = await fetch(`${apiBase}/api/admin/delete-teacher`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -76,7 +76,7 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
     setSyncing(true);
     setSyncStatus(null);
     try {
-      const apiBase = '/server.cjs';
+      const apiBase = '';
       const res = await fetch(`${apiBase}/api/admin/db-sync`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
