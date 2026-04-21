@@ -2,8 +2,10 @@ export interface User {
   id: number;
   role: 'teacher' | 'admin';
   name: string;
+  surname?: string;
   ai_key?: string;
   school?: string;
+  position?: string;
 }
 
 export interface Teacher {

@@ -115,8 +115,10 @@ async function startServer() {
             id: user.id, 
             role: user.role || 'teacher', 
             name: user.name, 
+            surname: user.surname,
             ai_key: user.ai_key, 
-            school: user.school 
+            school: user.school,
+            position: user.position
           };
           console.log('Login successful');
           res.json({ success: true, user: req.session.user });
