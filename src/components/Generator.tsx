@@ -46,24 +46,6 @@ function ExerciseRender({
   onUpdateHeader?: (field: string, value: string) => void
 }) {
   const f = fonts || { title: 18, indicators: 12, description: 14, question: 16, option: 16 };
-  const [isAiToolsOpen, setIsAiToolsOpen] = useState(false);
-  const [aiTopic, setAiTopic] = useState('');
-  const [aiCount, setAiCount] = useState(5);
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const handleGenItems = async () => {
-    if (!aiTopic) return alert('กรุณาระบุหัวข้อที่ต้องการเพิ่มครับ');
-    setIsGenerating(true);
-    try {
-      await onAddAiItems?.(aiTopic, aiCount);
-      setIsAiToolsOpen(false);
-      setAiTopic('');
-    } catch (e: any) {
-      alert('เกิดข้อผิดพลาด: ' + e.message);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
   
   return (
     <div className={`mb-12 last:mb-0 relative group/section ${editable ? 'p-6 border-2 border-transparent hover:border-slate-100 rounded-3xl transition-all' : ''}`}>
@@ -224,70 +206,14 @@ function ExerciseRender({
         ))}
 
         {editable && (
-          <div className="pt-8 flex flex-col items-center gap-4 no-print border-t border-slate-100 mt-8">
-            {!isAiToolsOpen ? (
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => setIsAiToolsOpen(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 hover:scale-105 active:scale-95"
-                >
-                  <Sparkles size={16} />
-                  เพิ่มข้อสอบด้วย AI (+หลายข้อ)
-                </button>
-                <button 
-                  onClick={onAddItem}
-                  className="flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl text-xs font-black uppercase hover:bg-slate-200 transition-all border border-slate-200"
-                >
-                  <Plus size={16} />
-                  เพิ่มแมนนวล (+1 ข้อ)
-                </button>
-              </div>
-            ) : (
-              <div className="w-full max-w-md bg-white p-6 rounded-3xl border-2 border-indigo-500 shadow-2xl animate-in zoom-in-95 duration-200">
-                <div className="flex items-center justify-between mb-4 pb-2 border-b border-indigo-100">
-                  <h4 className="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
-                    <Sparkles size={14} className="animate-pulse" /> ผู้ช่วย AI เพิ่มโจทย์
-                  </h4>
-                  <button onClick={() => setIsAiToolsOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">หัวข้อ/เนื้อหาที่ต้องการให้ AI ช่วยเพิ่ม</label>
-                    <input 
-                      autoFocus
-                      className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:bg-white transition-all shadow-inner"
-                      placeholder="เช่น แม่กวง, โจทย์ปัญหาการคูณ, คำศัพท์สัตว์..."
-                      value={aiTopic}
-                      onChange={(e) => setAiTopic(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleGenItems()}
-                    />
-                    <p className="text-[9px] text-slate-400 italic ml-1">AI จะสร้างโจทย์เพิ่มให้ตามระดับชั้นและรูปแบบข้อสอบเดิมของส่วนนี้ครับ</p>
-                  </div>
-                  <div className="flex items-center justify-between gap-6 pt-2">
-                    <div className="flex flex-col flex-1 gap-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">จำนวนข้อ</span>
-                        <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg">{aiCount} ข้อ</span>
-                      </div>
-                      <input 
-                        type="range" min="1" max="20" step="1" 
-                        value={aiCount} 
-                        onChange={(e) => setAiCount(parseInt(e.target.value))}
-                        className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                      />
-                    </div>
-                    <button 
-                      onClick={handleGenItems}
-                      disabled={isGenerating}
-                      className="shrink-0 px-8 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-black uppercase hover:bg-indigo-700 shadow-lg shadow-indigo-200 disabled:opacity-50 flex items-center gap-2 transition-all active:scale-95"
-                    >
-                      {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
-                      {isGenerating ? 'กำลังสร้าง...' : 'สร้างเพิ่ม'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+          <div className="pt-8 flex justify-center no-print border-t border-slate-100 mt-8">
+            <button 
+              onClick={onAddItem}
+              className="flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl text-xs font-black uppercase hover:bg-slate-200 transition-all border border-slate-200"
+            >
+              <Plus size={16} />
+              เพิ่มข้อสอบแบบพิมพ์เอง (+1 ข้อ)
+            </button>
           </div>
         )}
       </div>
@@ -323,6 +249,11 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
   const [combinedResults, setCombinedResults] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [existingFontSettings, setExistingFontSettings] = useState<any>(null);
+
+  // New states for Appender
+  const [appenderTopic, setAppenderTopic] = useState('');
+  const [appenderCount, setAppenderCount] = useState(5);
+  const [isAppenderGenerating, setIsAppenderGenerating] = useState(false);
 
   useEffect(() => {
     if (exerciseId) {
@@ -407,7 +338,11 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
 
       setResult(JSON.parse(response.text));
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาด: ' + error.message);
+      if (error.message?.includes('503') || error.message?.includes('high demand')) {
+        alert('ขณะนี้ AI มีผู้ใช้งานเป็นจำนวนมากครับ กรุณารอประมาณ 5-10 วินาทีแล้วกดปุ่ม "สร้างเพิ่ม" หรือ "สร้างใบงาน" อีกครั้งนะครับ');
+      } else {
+        alert('เกิดข้อผิดพลาด: ' + error.message);
+      }
     } finally {
       setGenerating(false);
     }
@@ -530,50 +465,73 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
     }
   };
 
+  const handleAppenderSubmit = async () => {
+    if (!appenderTopic) return alert('กรุณาระบุหัวข้อที่ต้องการเพิ่มครับ');
+    setIsAppenderGenerating(true);
+    try {
+      // Determine which section to append to: 
+      // Prefer appending to `result` if it exists, otherwise last section of `combinedResults`
+      const targetSectionIdx = result ? null : (combinedResults.length > 0 ? combinedResults.length - 1 : null);
+      await handleAddAiItemsToSection(targetSectionIdx, appenderTopic, appenderCount);
+      setAppenderTopic('');
+      alert('สร้างโจทย์เพิ่มสำเร็จแล้วครับ!');
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setIsAppenderGenerating(false);
+    }
+  };
+
   const handleAddAiItemsToSection = async (sectionIdx: number | null, topic: string, count: number) => {
     if (!user.ai_key) throw new Error('API Key Missing');
 
     const ai = new GoogleGenAI({ apiKey: user.ai_key });
     const systemInstruction = `You are a professional educational content creator for Thai ministry of education.`;
     
-    // Determine the type for the section
     const currentType = sectionIdx === null ? formData.type : (combinedResults[sectionIdx].type || formData.type);
     const currentGrade = formData.grade;
 
     const prompt = `สร้างคำถามเพิ่มจำนวน ${count} ข้อ ในหัวข้อ: "${topic}" สำหรับระดับชั้น ${currentGrade} โดยเป็นข้อสอบรูปแบบ: ${currentType}. 
     เฉลยคำตอบในฟิลด์ answer และให้คำอธิบายใน explanation. ตอบเป็น JSON array ของ items เท่านั้น [{ "question": "...", "options": ["..."], "answer": "...", "explanation": "..." }]`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: {
-        systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: GeminiType.ARRAY,
-          items: {
-            type: GeminiType.OBJECT,
-            properties: {
-              question: { type: GeminiType.STRING },
-              options: { type: GeminiType.ARRAY, items: { type: GeminiType.STRING } },
-              answer: { type: GeminiType.STRING },
-              explanation: { type: GeminiType.STRING }
-            },
-            required: ["question", "answer", "explanation"]
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+        config: {
+          systemInstruction,
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: GeminiType.ARRAY,
+            items: {
+              type: GeminiType.OBJECT,
+              properties: {
+                question: { type: GeminiType.STRING },
+                options: { type: GeminiType.ARRAY, items: { type: GeminiType.STRING } },
+                answer: { type: GeminiType.STRING },
+                explanation: { type: GeminiType.STRING }
+              },
+              required: ["question", "answer", "explanation"]
+            }
           }
-        }
-      },
-    });
+        },
+      });
 
-    const newItems = JSON.parse(response.text);
-    
-    if (sectionIdx === null) {
-      if (!result) return;
-      setResult({ ...result, items: [...result.items, ...newItems] });
-    } else {
-      const newSections = [...combinedResults];
-      newSections[sectionIdx] = { ...newSections[sectionIdx], items: [...newSections[sectionIdx].items, ...newItems] };
-      setCombinedResults(newSections);
+      const newItems = JSON.parse(response.text);
+      
+      if (sectionIdx === null) {
+        if (!result) return;
+        setResult({ ...result, items: [...result.items, ...newItems] });
+      } else {
+        const newSections = [...combinedResults];
+        newSections[sectionIdx] = { ...newSections[sectionIdx], items: [...newSections[sectionIdx].items, ...newItems] };
+        setCombinedResults(newSections);
+      }
+    } catch (error: any) {
+      if (error.message?.includes('503') || error.message?.includes('high demand')) {
+        throw new Error('ขณะนี้ AI มีผู้ใช้งานเป็นจำนวนมากครับ กรุณารอประมาณ 5-10 วินาทีแล้วกดปุ่ม "สร้างเพิ่ม" อีกครั้งนะครับ');
+      }
+      throw error;
     }
   };
 
@@ -737,6 +695,46 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
                 {generating ? <Loader2 className="animate-spin" size={20} /> : combinedResults.length > 0 ? <Plus size={20} /> : <Wand2 size={20} />}
                 <span>{generating ? 'กำลังสร้าง...' : combinedResults.length > 0 ? `เพิ่มส่วนที่ ${combinedResults.length + 1}` : 'สร้างใบงานแรก'}</span>
               </button>
+
+              {/* AI Appender Card - Sidebar */}
+              {(result || combinedResults.length > 0) && (
+                <div className="bg-white p-6 rounded-2xl border-2 border-indigo-500 shadow-xl mt-4 animate-in slide-in-from-left-4 duration-300">
+                  <h4 className="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
+                    <Sparkles size={16} className="animate-pulse" /> ผู้ช่วย AI: เพิ่มโจทย์ให้ส่วนปัจจุบัน
+                  </h4>
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">ระบุหัวข้อที่ต้องการเพิ่ม</label>
+                      <input 
+                        className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 transition-all"
+                        placeholder="เช่น แม่กวง, การหารเลข..."
+                        value={appenderTopic}
+                        onChange={(e) => setAppenderTopic(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && !isAppenderGenerating && handleAppenderSubmit()}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">จำนวน {appenderCount} ข้อ</span>
+                      </div>
+                      <input 
+                        type="range" min="1" max="20" step="1" 
+                        value={appenderCount} 
+                        onChange={(e) => setAppenderCount(parseInt(e.target.value))}
+                        className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                      />
+                    </div>
+                    <button 
+                      onClick={handleAppenderSubmit}
+                      disabled={isAppenderGenerating}
+                      className="w-full py-3 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase hover:bg-indigo-700 shadow-md disabled:opacity-50 flex items-center justify-center gap-2 transition-all"
+                    >
+                      {isAppenderGenerating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
+                      {isAppenderGenerating ? 'กำลังสร้างโจทย์...' : 'สร้างเพิ่มให้ใบงานนี้'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
