@@ -233,6 +233,8 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
   // MODE B: Standard Editing Mode
   return (
     <div className="space-y-8 pb-20 max-w-[1400px] mx-auto px-4 relative font-sarabun text-left">
+      {/* 1. UI Controls - Screen Only */}
+      <div className="flex items-center justify-between bg-white p-6 rounded-3xl border border-slate-200 shadow-sm no-print sticky top-4 z-[100]">
         <button onClick={() => onNavigate('history')} className="flex items-center gap-2 text-slate-500 font-bold hover:text-indigo-600 transition-colors">
           <ChevronLeft size={20} />
           <span>ย้อนกลับคลังแบบฝึกหัด</span>
