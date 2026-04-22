@@ -116,91 +116,104 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           {chunks.map((chunk, pageIdx) => (
             <div 
               key={pageIdx}
-              className="a4-sheet bg-white text-black relative flex flex-col overflow-hidden shadow-2xl print:shadow-none"
+              className="a4-sheet bg-white text-black shadow-2xl print:shadow-none"
               style={{ 
+                display: 'block', // Use block instead of flex
                 width: '210mm', 
                 height: '297mm', 
-                minHeight: '297mm', 
-                maxHeight: '297mm', // Strict height to prevent bleed
+                padding: '0',
+                margin: '0 auto',
                 boxSizing: 'border-box',
-                pageBreakBefore: pageIdx > 0 ? 'always' : 'auto' // Force break between pages
+                pageBreakAfter: 'always',
+                backgroundColor: 'white',
+                position: 'relative'
               }}
             >
-              {/* [MARGIN TOP: 30mm] - Section for Header and Top Padding */}
-              <div className="h-[30mm] w-full flex flex-col justify-end px-[20mm]">
-                <div className="flex justify-between items-end pb-1 pr-1 font-bold">
-                  <div className="text-[14px] truncate uppercase pr-4">แบบฝึกหัด: {exercise.title}</div>
-                  <div className="text-[11px] shrink-0 text-slate-500">หน้า {pageIdx + 1} / {chunks.length}</div>
+              {/* HEADER BLOCK: Fixed 30mm height */}
+              <div style={{ height: '30mm', width: '100%', padding: '0 20mm', display: 'block', boxSizing: 'border-box', paddingTop: '10mm' }}>
+                <div style={{ borderBottom: '3px solid black', paddingBottom: '2mm', overflow: 'hidden' }}>
+                  <div style={{ float: 'left', fontSize: '12pt', fontWeight: 'bold' }}>แบบฝึกหัด: {exercise.title}</div>
+                  <div style={{ float: 'right', fontSize: '10pt', fontWeight: 'bold', color: '#666' }}>หน้า {pageIdx + 1} / {chunks.length}</div>
+                  <div style={{ clear: 'both' }}></div>
                 </div>
-                <div className="border-t-[3px] border-black mb-4"></div>
               </div>
 
-              {/* [MARGIN SIDE: 20mm] - Main content container */}
-              <div className="flex-1 px-[20mm] py-4 flex flex-col overflow-hidden">
+              {/* CONTENT BLOCK: Main body with 20mm side padding */}
+              <div style={{ padding: '5mm 20mm', height: '242mm', display: 'block', boxSizing: 'border-box', overflow: 'hidden' }}>
                 {pageIdx === 0 && (
-                  <>
-                    <div className="border-b-2 border-black pb-4 mb-8 text-[13px] font-bold flex items-center gap-6">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="shrink-0">ชื่อ-นามสกุล:</span>
-                        <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2"></div>
-                      </div>
-                      <div className="flex items-center gap-2 w-[80px] shrink-0">
-                        <span className="shrink-0">เลขที่:</span>
-                        <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2 text-center"></div>
-                      </div>
-                      <div className="flex items-center gap-2 w-[110px] shrink-0">
-                        <span className="shrink-0">ชั้น:</span>
-                        <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
-                        <span className="shrink-0">/</span>
-                        <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
-                      </div>
+                  <div style={{ marginBottom: '8mm', display: 'block' }}>
+                    {/* Name Entry Box */}
+                    <div style={{ borderBottom: '2px solid black', paddingBottom: '4mm', marginBottom: '6mm', fontSize: '13pt', fontWeight: 'bold', display: 'block', overflow: 'hidden' }}>
+                      <span style={{ float: 'left', width: '60%' }}>ชื่อ-นามสกุล: .....................................................................................</span>
+                      <span style={{ float: 'left', width: '15%' }}>เลขที่: .......</span>
+                      <span style={{ float: 'right', width: '25%', textAlign: 'right' }}>ชั้น: ......... / .........</span>
+                      <div style={{ clear: 'both' }}></div>
                     </div>
-                    <div className="mb-6 text-center">
-                      {/* [FONT SIZE: Title] */}
-                      <h1 className="font-extrabold mb-1" style={{ fontSize: `${fontSettings.title}pt` }}>{exercise.title}</h1>
-                      {/* [FONT SIZE: Indicators] */}
-                      <p className="text-slate-600 font-bold italic mb-4" style={{ fontSize: `${fontSettings.indicators}pt` }}>
+                    {/* Title Section */}
+                    <div style={{ textAlign: 'center', display: 'block', marginBottom: '5mm' }}>
+                      <h1 style={{ fontSize: `${fontSettings.title}pt`, fontWeight: '800', marginBottom: '1mm', lineHeight: '1.2' }}>{exercise.title}</h1>
+                      <p style={{ fontSize: `${fontSettings.indicators}pt`, fontWeight: 'bold', fontStyle: 'italic', color: '#444', marginBottom: '4mm' }}>
                         มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
                       </p>
-                      {/* [FONT SIZE: Description] */}
-                      <div className="bg-slate-50 p-4 border-l-8 border-black italic text-left leading-relaxed shadow-sm" style={{ fontSize: `${fontSettings.description}pt` }}>
-                        <span className="font-extrabold not-italic mr-2 underline">คำชี้แจง:</span>
+                      <div style={{ backgroundColor: '#f9f9f9', padding: '10pt', borderLeft: '8px solid black', fontStyle: 'italic', textAlign: 'left', lineHeight: '1.5', fontSize: `${fontSettings.description}pt` }}>
+                        <span style={{ fontWeight: '800', fontStyle: 'normal', textDecoration: 'underline', marginRight: '5pt' }}>คำชี้แจง:</span>
                         {contentData.description}
                       </div>
-                      <div className="mt-6 border-t-2 border-black w-full opacity-30"></div>
+                      <div style={{ marginTop: '5mm', borderTop: '2px solid black', opacity: '0.2' }}></div>
                     </div>
-                  </>
+                  </div>
                 )}
 
-                <div className="space-y-6 flex-1">
+                {/* Question List: Standard Block Flow */}
+                <div style={{ display: 'block' }}>
                   {chunk.map((item: any, idx: number) => {
                     const globalIdx = (pageIdx * itemsPerPage) + idx + 1;
                     return (
-                      <div key={idx} className="break-inside-avoid">
-                        {/* [FONT SIZE: Question] */}
-                        <div className="flex gap-4 mb-4" style={{ fontSize: `${fontSettings.question}pt` }}>
-                          <span className="font-bold shrink-0">{globalIdx}.</span>
-                          <div className="font-bold leading-relaxed">{item.question}</div>
+                      <div key={idx} style={{ marginBottom: '8mm', display: 'block', breakInside: 'avoid' }}>
+                        <div style={{ fontSize: `${fontSettings.question}pt`, fontWeight: 'bold', marginBottom: '3mm', lineHeight: '1.4' }}>
+                          <span style={{ marginRight: '10pt' }}>{globalIdx}.</span>
+                          <span>{item.question}</span>
                         </div>
+                        
                         {item.options ? (
-                          <div className="grid grid-cols-2 gap-x-12 gap-y-3 ml-10 text-slate-800">
+                          <div style={{ marginLeft: '10mm', display: 'block' }}>
                             {item.options.map((opt: string, oIdx: number) => (
-                              /* [FONT SIZE: Option] */
-                              <div key={oIdx} className="flex items-start gap-3" style={{ fontSize: `${fontSettings.option}pt` }}>
-                                <div className="rounded-full border-2 border-black flex items-center justify-center font-bold shrink-0 mt-1" style={{ width: '22px', height: '22px', fontSize: '10pt' }}>
+                              <div 
+                                key={oIdx} 
+                                style={{ 
+                                  width: '48%', 
+                                  display: 'inline-block', 
+                                  fontSize: `${fontSettings.option}pt`, 
+                                  marginBottom: '3mm',
+                                  verticalAlign: 'top',
+                                  lineHeight: '1.2'
+                                }}
+                              >
+                                <div style={{ 
+                                  width: '24px', 
+                                  height: '24px', 
+                                  border: '2px solid black', 
+                                  borderRadius: '50%', 
+                                  display: 'inline-block', 
+                                  textAlign: 'center', 
+                                  lineHeight: '20px', 
+                                  fontWeight: 'bold', 
+                                  fontSize: '10pt',
+                                  marginRight: '8pt'
+                                }}>
                                   {String.fromCharCode(65 + oIdx)}
                                 </div>
-                                <span className="leading-tight">{opt}</span>
+                                <span style={{ display: 'inline-block', width: 'calc(100% - 35px)', verticalAlign: 'top' }}>{opt}</span>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="ml-10 space-y-4 pr-6">
-                            <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                          <div style={{ marginLeft: '10mm', display: 'block' }}>
+                            <div style={{ borderBottom: '1px dotted #333', height: '10mm', width: '95%' }}></div>
                             {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
                               <>
-                                <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
-                                <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                                <div style={{ borderBottom: '1px dotted #333', height: '10mm', width: '95%' }}></div>
+                                <div style={{ borderBottom: '1px dotted #333', height: '10mm', width: '95%' }}></div>
                               </>
                             )}
                           </div>
@@ -211,8 +224,17 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                 </div>
               </div>
 
-              {/* [MARGIN BOTTOM: 25mm] - Section for Footer and Bottom Padding */}
-              <div className="h-[25mm] w-full flex flex-col justify-center px-[20mm] pb-4">
+              {/* FOOTER BLOCK: Fixed 25mm height */}
+              <div style={{ height: '25mm', width: '100%', padding: '0 20mm', display: 'block', boxSizing: 'border-box' }}>
+                <div style={{ borderTop: '2px solid black', paddingTop: '3mm', fontSize: '10pt', fontWeight: 'bold', overflow: 'hidden' }}>
+                  <div style={{ float: 'left' }}>
+                    รายวิชา: {exercise.course} | ผู้สอน: คร.{user.name} {user.surname}
+                  </div>
+                  <div style={{ float: 'right', fontSize: '8pt', opacity: '0.6' }}>EduGen AI Tool</div>
+                </div>
+              </div>
+            </div>
+          ))}
                 <div className="border-t-2 border-black pt-3 flex justify-between items-center text-[10px] font-bold">
                   <div className="flex flex-wrap items-center gap-x-6">
                     <span className="uppercase">รายวิชา: {exercise.course}</span>
@@ -462,16 +484,17 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           }
 
           .a4-sheet {
-            display: flex !important;
+            display: block !important;
             width: 210mm !important;
             height: 297mm !important;
             page-break-after: always !important;
             break-after: page !important;
             margin: 0 !important;
+            padding: 0 !important;
             box-shadow: none !important;
             border: none !important;
-            position: relative !important;
             background: white !important;
+            position: relative !important;
           }
 
           * {
