@@ -95,19 +95,19 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             className="a4-sheet bg-white text-black font-sarabun relative flex flex-col shadow-2xl overflow-hidden text-left"
             style={{ width: '210mm', height: '297mm', minHeight: '297mm' }}
           >
-            {/* Page Header (Every page) */}
-            <div className="h-[25mm] w-full flex flex-col justify-end px-[15mm]">
+            {/* Page Header (Every page) - Increased Top Margin */}
+            <div className="h-[30mm] w-full flex flex-col justify-end px-[20mm]">
               <div className="flex justify-between items-end pb-1 pr-1">
                 <div className="text-[14px] font-extrabold truncate uppercase pr-4">
                   ใบงาน/แบบฝึกหัด: {exercise.title}
                 </div>
                 <div className="text-[11px] font-bold shrink-0 text-slate-500">แผ่นที่ {pageIdx + 1} / {chunks.length}</div>
               </div>
-              <div className="border-t-[3px] border-black mb-2"></div>
+              <div className="border-t-[3px] border-black mb-4"></div>
             </div>
 
-            {/* Content Area */}
-            <div className="flex-1 px-[15mm] py-4 flex flex-col overflow-hidden">
+            {/* Content Area - Increased Side Margin */}
+            <div className="flex-1 px-[20mm] py-4 flex flex-col overflow-hidden">
               {/* Student Info Box (Only on Page 1) */}
               {pageIdx === 0 && (
                 <div className="border-b-2 border-black pb-4 mb-8 text-[13px] font-bold flex items-center gap-6">
@@ -181,8 +181,8 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
               </div>
             </div>
 
-            {/* Page Footer (Every page) */}
-            <div className="h-[20mm] w-full flex flex-col justify-center px-[15mm]">
+            {/* Page Footer (Every page) - Increased Side Margin */}
+            <div className="h-[25mm] w-full flex flex-col justify-center px-[20mm] pb-4">
               <div className="border-t-2 border-black pt-3 flex justify-between items-center text-[11px] font-bold">
                 <div className="flex flex-wrap items-center gap-x-6 uppercase">
                   <span>วิชา: {exercise.course}</span>
