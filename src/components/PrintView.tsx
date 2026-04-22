@@ -31,6 +31,28 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
       });
   }, [exerciseId]);
 
+  const [previewScale, setPreviewScale] = useState(1);
+
+  useEffect(() => {
+    const updateScale = () => {
+      const container = document.getElementById('preview-wrapper');
+      if (container) {
+        const availableWidth = container.offsetWidth;
+        const a4WidthPx = 210 * 3.78; // approx px for 210mm
+        const padding = 20;
+        if (availableWidth < a4WidthPx + padding) {
+          setPreviewScale((availableWidth - padding) / a4WidthPx);
+        } else {
+          setPreviewScale(1);
+        }
+      }
+    };
+    window.addEventListener('resize', updateScale);
+    updateScale();
+    setTimeout(updateScale, 100);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+
   const handleSaveSettings = async () => {
     if (!exercise) return;
     setSavingSettings(true);
@@ -70,12 +92,18 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     const f = fontSettings;
     
     return (
-      <div id="printable-area" className="print-doc-container bg-white text-black font-sarabun mx-auto relative shadow-2xl">
-        {/*
-          THEAD/TFOOT logic is the most reliable way to handle repeating headers and footers 
-          on multiple pages in modern browsers (especially Chrome/Edge).
-        */}
-        <table className="w-full border-collapse print-table">
+      <div 
+        id="printable-area" 
+        className="print-doc-container bg-white text-black font-sarabun mx-auto relative"
+        style={{ 
+          width: '210mm',
+          minHeight: '297mm',
+          transform: `scale(${previewScale})`,
+          transformOrigin: 'top center',
+          boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+        }}
+      >
+        <table className="w-full border-collapse print-table" style={{ tableLayout: 'fixed' }}>
           <thead className="table-header-group">
             <tr>
               <td className="p-0 border-none">
@@ -95,22 +123,22 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           <tbody className="table-row-group">
             <tr>
               <td className="p-0 border-none">
-                <div className="printable-content px-12 pt-6 pb-12 flex flex-col min-h-[200mm]">
-                  {/* Name section: Only on the first page as it is inside tbody */}
-                  <div className="border-b-2 border-black pb-4 mb-8 text-[13px] font-bold flex items-center gap-6 bg-white first-page-header-box">
-                    <div className="flex items-center gap-2 flex-[2]">
+                <div className="printable-content px-[15mm] pt-6 pb-12 flex flex-col">
+                  {/* Student Info - Box with fixed widths to prevent overflow */}
+                  <div className="border-b-2 border-black pb-4 mb-8 text-[13px] font-bold flex items-center gap-4 bg-white first-page-header-box">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
                       <span className="shrink-0">ชื่อ-นามสกุล:</span>
-                      <div className="border-b border-dotted border-black flex-1 h-4 min-w-[150px]"></div>
+                      <div className="border-b border-dotted border-black flex-1 h-4"></div>
                     </div>
-                    <div className="flex items-center gap-2 flex-1 max-w-[100px]">
+                    <div className="flex items-center gap-2 w-[80px] shrink-0">
                       <span className="shrink-0">เลขที่:</span>
                       <div className="border-b border-dotted border-black flex-1 h-4"></div>
                     </div>
-                    <div className="flex items-center gap-2 flex-1 max-w-[130px]">
+                    <div className="flex items-center gap-2 w-[110px] shrink-0">
                       <span className="shrink-0">ชั้น:</span>
-                      <div className="border-b border-dotted border-black flex-1 h-4"></div>
+                      <div className="border-b border-dotted border-black w-10 h-4"></div>
                       <span className="shrink-0">/</span>
-                      <div className="border-b border-dotted border-black flex-1 h-4"></div>
+                      <div className="border-b border-dotted border-black w-10 h-4"></div>
                     </div>
                   </div>
 
@@ -214,15 +242,14 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           <tfoot className="table-footer-group">
             <tr>
               <td className="p-0 border-none">
-                {/* Footer that repeats on every page */}
-                <div className="repeating-footer-box h-[20mm] w-full bg-white flex flex-col justify-center px-12">
+                <div className="repeating-footer-box h-[20mm] w-full bg-white flex flex-col justify-center px-[15mm]">
                   <div className="border-t border-black pt-3 flex justify-between items-center text-[11px] font-bold">
-                    <div className="flex flex-wrap items-center gap-x-6 gap-y-1 uppercase">
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-1 uppercase text-left">
                       <span>วิชา: {exercise.course}</span>
-                      <span>ผู้สอน: {user.name} {user.surname}</span>
+                      <span>ผู้สอน: คร.{user.name} {user.surname}</span>
                       <span>{user.position || user.school || 'ครูผู้สอน'}</span>
                     </div>
-                    <span className="text-[9px] text-slate-400 italic font-normal">Generated by EduGen AI System</span>
+                    <span className="text-[9px] text-slate-400 italic font-normal shrink-0 ml-4">EduGen AI</span>
                   </div>
                 </div>
               </td>
@@ -231,78 +258,46 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
         </table>
 
         <style>{`
-          /* VIRTUAL A4 PREVIEW (Screen only) */
           @media screen {
             .print-doc-container {
-              width: 210mm;
-              margin: 0 auto;
               background-color: white;
-              position: relative;
-              /* Simulate A4 page guide lines in preview */
+              margin: 0 auto;
               background-image: linear-gradient(to bottom, transparent 296mm, #eee 296mm, #eee 297mm, transparent 297mm);
               background-size: 100% 297mm;
             }
-            .repeating-header-box, .repeating-footer-box {
-              background-color: #fcfcfc !important; /* Slightly distinct in preview */
-              border-left: 4px solid #6366f1;
-            }
           }
-
-          /* PRINT MODE */
           @media print {
-            @page {
-              size: A4;
-              margin: 0;
-            }
-
+            @page { size: A4; margin: 0; }
             body { 
-              background: white !important; 
-              counter-reset: page;
               margin: 0 !important;
               padding: 0 !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
+              background: white !important;
+              counter-reset: page;
             }
-
+            #root, main { overflow: visible !important; }
+            .no-print { display: none !important; }
             .print-doc-container {
               width: 210mm !important;
-              padding: 0 !important;
+              height: auto !important;
+              min-height: 0 !important;
               margin: 0 !important;
-              background: white !important;
+              padding: 0 !important;
+              transform: none !important;
               box-shadow: none !important;
               display: block !important;
-              position: static !important;
               background-image: none !important;
+              overflow: visible !important;
             }
-
-            .no-print { display: none !important; }
-
             .print-table {
-              width: 100%;
-              border-spacing: 0;
-              border-collapse: collapse;
-              table-layout: fixed;
+              width: 100% !important;
+              table-layout: fixed !important;
             }
-
-            .table-header-group {
-              display: table-header-group !important;
-            }
-
-            .table-footer-group {
-              display: table-footer-group !important;
-            }
-
-            .page-counter-indicator::after {
-              content: "หน้า " counter(page);
-            }
-
+            .table-header-group { display: table-header-group !important; }
+            .table-footer-group { display: table-footer-group !important; }
+            .page-counter-indicator::after { content: "หน้า " counter(page); }
             .break-inside-avoid {
-              page-break-inside: avoid !important;
               break-inside: avoid !important;
-            }
-
-            thead td, tfoot td {
-              background-color: white !important;
+              page-break-inside: avoid !important;
             }
           }
         `}</style>
@@ -360,9 +355,11 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           </div>
         </div>
 
-        {/* Right Content: The Printable Document */}
-        <div className="flex-1 w-full overflow-x-auto pb-8 print:p-0">
-          {printArea()}
+        {/* Right Content: The Printable Document with Scaling Wrapper */}
+        <div id="preview-wrapper" className="flex-1 w-full bg-slate-100/30 rounded-3xl border border-slate-200/50 p-8 flex justify-center items-start overflow-hidden min-h-[800px] print:p-0 print:bg-transparent print:border-none">
+          <div style={{ height: `${297 * 3.78 * previewScale}px`, width: '100%', display: 'flex', justifyContent: 'center' }} className="print:h-auto">
+            {printArea()}
+          </div>
         </div>
       </div>
 
