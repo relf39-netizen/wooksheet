@@ -537,108 +537,98 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
 
   const printArea = () => {
     return (
-      <div id="printable-area" className="print-container bg-white text-black font-sarabun">
-        {/* Table layout: the gold standard for repeating headers/footers in Chrome print */}
-        <table className="w-full border-collapse">
-          {/* HEADER SPACE (Repeated on every page) */}
-          <thead className="no-screen table-header-group">
-            <tr>
-              <td className="p-0">
-                <div className="h-16 flex items-center justify-between px-12 bg-white border-b-2 border-black mb-6">
-                  <div className="text-[14px] font-extrabold uppercase truncate max-w-[70%]">ใบงาน: {formData.title || 'ไม่มีหัวข้อ'}</div>
-                  <div className="text-[12px] font-bold page-number-counter"></div>
-                </div>
-              </td>
-            </tr>
-          </thead>
+      <div id="printable-area" className="print-container bg-white text-black font-sarabun relative">
+        {/* 
+          Standard approach for professional multi-page documents:
+          - Use @page margin to reserve space at the top and bottom.
+          - Use position:fixed elements to fill those margins on every page.
+          - The browser automatically pushes table content to stay within the margins.
+        */}
 
-          {/* MAIN CONTENT SPACE */}
-          <tbody className="table-row-group">
-            <tr>
-              <td className="p-0">
-                <div className="px-12 pt-4 pb-12 flex flex-col min-h-[200mm]">
-                   {/* Name Box: Only on Page 1 (inside tbody) */}
-                   <div className="border-b-2 border-black pb-4 mb-6 text-[13px] font-bold flex items-center gap-6 bg-white no-screen-first-page-header">
-                    <div className="flex items-center gap-2 flex-[2]">
-                      <span className="shrink-0">ชื่อ-นามสกุล:</span>
-                      <div className="border-b border-dotted border-black flex-1 h-4 min-w-[150px]"></div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-1 max-w-[100px]">
-                      <span className="shrink-0">เลขที่:</span>
-                      <div className="border-b border-dotted border-black flex-1 h-4"></div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-1 max-w-[130px]">
-                      <span className="shrink-0">ชั้น:</span>
-                      <div className="border-b border-dotted border-black flex-1 h-4"></div>
-                      <span className="shrink-0">/</span>
-                      <div className="border-b border-dotted border-black flex-1 h-4"></div>
-                    </div>
-                  </div>
+        {/* REPEATING HEADER: Fixed in the top margin area */}
+        <div className="repeating-header-print no-screen">
+          <div className="flex items-center justify-between border-b-2 border-black pb-2 w-full">
+            <div className="text-[14px] font-extrabold uppercase">
+              ใบงาน/แบบฝึกหัด: {formData.title || 'ไม่มีหัวข้อ'}
+            </div>
+            <div className="text-[12px] font-bold page-num-counter"></div>
+          </div>
+        </div>
 
-                  <div className="printable-body flex-1 text-[16pt] leading-normal">
-                    {combinedResults.length > 0 ? (
-                      combinedResults.map((res, rIdx) => {
-                        const prevItemsCount = combinedResults.slice(0, rIdx).reduce((acc, curr) => acc + curr.items.length, 0);
-                        const startIdx = prevItemsCount + 1;
-                        return (
-                          <div key={rIdx} className="break-inside-auto mb-8 last:mb-0">
-                            <ExerciseRender 
-                              result={res} 
-                              exerciseType={res.type || formData.type} 
-                              sectionIdx={rIdx + 1} 
-                              startIdx={startIdx} 
-                              editable={true}
-                              onUpdateItem={(iIdx, f, v) => updateItem(rIdx, iIdx, f, v)}
-                              onAddItem={() => addItemToSection(rIdx)}
-                              onAddAiItems={(t, c) => handleAddAiItemsToSection(rIdx, t, c)}
-                              onRemoveItem={(iIdx) => removeItemFromSection(rIdx, iIdx)}
-                              onUpdateHeader={(f, v) => updateHeader(rIdx, f, v)}
-                            />
-                          </div>
-                        );
-                      })
-                    ) : result ? (
-                      <div className="break-inside-auto">
-                        <ExerciseRender 
-                          result={result} 
-                          exerciseType={formData.topic ? formData.type : 'multiple_choice'} 
-                          editable={true}
-                          onUpdateItem={(iIdx, f, v) => updateItem(null, iIdx, f, v)}
-                          onAddItem={() => addItemToSection(null)}
-                          onAddAiItems={(t, c) => handleAddAiItemsToSection(null, t, c)}
-                          onRemoveItem={(iIdx) => removeItemFromSection(null, iIdx)}
-                          onUpdateHeader={(f, v) => updateHeader(null, f, v)}
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-64 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-3xl text-slate-300 font-bold uppercase tracking-widest text-sm no-print">
-                        ยังไม่มีเนื้อหาแบบฝึกหัด
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
+        {/* REPEATING FOOTER: Fixed in the bottom margin area */}
+        <div className="repeating-footer-print no-screen">
+          <div className="border-t border-black pt-3 flex justify-between items-center text-[10px] font-bold w-full">
+            <div className="flex flex-wrap items-center gap-x-6 uppercase shrink-0">
+              <span>วิชา: {formData.course}</span>
+              <span>ผู้สอน: {user.name} {user.surname}</span>
+              <span>ตำแหน่ง: {user.position || user.school || 'ครูผู้สอน'}</span>
+            </div>
+            <span className="text-[8px] text-slate-400 italic shrink-0">Generated by EduGen AI System</span>
+          </div>
+        </div>
 
-          {/* FOOTER SPACE (Repeated on every page) */}
-          <tfoot className="no-screen table-footer-group">
-            <tr>
-              <td className="p-0">
-                <div className="h-24 px-12 border-t border-black bg-white flex flex-col justify-center">
-                  <div className="flex justify-between items-center text-[11px] font-bold">
-                    <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
-                      <span className="whitespace-nowrap uppercase">วิชา: {formData.course}</span>
-                      <span className="whitespace-nowrap uppercase">ผู้สอน: {user.name} {user.surname}</span>
-                      <span className="whitespace-nowrap uppercase">ตำแหน่ง: {user.position || user.school || 'ครูผู้สอน'}</span>
-                    </div>
-                    <span className="text-[9px] text-slate-400 italic shrink-0 ml-4 font-normal">Generated by EduGen AI</span>
+        {/* MAIN SCROLLABLE CONTENT */}
+        <div className="printable-body-wrapper px-12 pt-4 pb-8 flex flex-col">
+          {/* Page 1 Specific Header */}
+          <div className="border-b-2 border-black pb-6 mb-8 text-[13px] font-bold flex items-center gap-6 bg-white first-page-name-header">
+            <div className="flex items-center gap-2 flex-[2]">
+              <span className="shrink-0">ชื่อ-นามสกุล:</span>
+              <div className="border-b border-dotted border-black flex-1 h-4 min-w-[150px]"></div>
+            </div>
+            <div className="flex items-center gap-2 flex-1 max-w-[100px]">
+              <span className="shrink-0">เลขที่:</span>
+              <div className="border-b border-dotted border-black flex-1 h-4"></div>
+            </div>
+            <div className="flex items-center gap-2 flex-1 max-w-[130px]">
+              <span className="shrink-0">ชั้น:</span>
+              <div className="border-b border-dotted border-black flex-1 h-4"></div>
+              <span className="shrink-0">/</span>
+              <div className="border-b border-dotted border-black flex-1 h-4"></div>
+            </div>
+          </div>
+
+          <div className="printable-questions-content text-[16pt] leading-normal min-h-[100mm]">
+            {combinedResults.length > 0 ? (
+              combinedResults.map((res, rIdx) => {
+                const prevItemsCount = combinedResults.slice(0, rIdx).reduce((acc, curr) => acc + curr.items.length, 0);
+                const startIdx = prevItemsCount + 1;
+                return (
+                  <div key={rIdx} className="break-inside-auto mb-12 last:mb-0">
+                    <ExerciseRender 
+                      result={res} 
+                      exerciseType={res.type || formData.type} 
+                      sectionIdx={rIdx + 1} 
+                      startIdx={startIdx} 
+                      editable={true}
+                      onUpdateItem={(iIdx, f, v) => updateItem(rIdx, iIdx, f, v)}
+                      onAddItem={() => addItemToSection(rIdx)}
+                      onAddAiItems={(t, c) => handleAddAiItemsToSection(rIdx, t, c)}
+                      onRemoveItem={(iIdx) => removeItemFromSection(rIdx, iIdx)}
+                      onUpdateHeader={(f, v) => updateHeader(rIdx, f, v)}
+                    />
                   </div>
-                </div>
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+                );
+              })
+            ) : result ? (
+              <div className="break-inside-auto">
+                <ExerciseRender 
+                  result={result} 
+                  exerciseType={formData.topic ? formData.type : 'multiple_choice'} 
+                  editable={true}
+                  onUpdateItem={(iIdx, f, v) => updateItem(null, iIdx, f, v)}
+                  onAddItem={() => addItemToSection(null)}
+                  onAddAiItems={(t, c) => handleAddAiItemsToSection(null, t, c)}
+                  onRemoveItem={(iIdx) => removeItemFromSection(null, iIdx)}
+                  onUpdateHeader={(f, v) => updateHeader(null, f, v)}
+                />
+              </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-3xl text-slate-300 font-bold uppercase tracking-widest text-sm no-print">
+                ยังไม่มีเนื้อหาแบบฝึกหัด
+              </div>
+            )}
+          </div>
+        </div>
 
         <style>{`
           @media screen {
@@ -648,10 +638,36 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
               box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
               transform: scale(0.6);
               transform-origin: top center;
-              margin-bottom: -40%;
+              margin-bottom: -30%;
             }
+            .no-screen { display: none !important; }
           }
+
           @media print {
+            @page {
+              size: A4;
+              margin: 20mm 0; /* Push body content down and up to leave space for fixed headers */
+            }
+
+            html, body {
+              overflow: visible !important;
+              height: auto !important;
+              background: white !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              counter-reset: page;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+
+            /* Important to clear layout restrictions */
+            #root, main, .main-layout-class { 
+              overflow: visible !important; 
+              display: block !important;
+              height: auto !important;
+              position: static !important;
+            }
+
             .print-container {
               width: 210mm !important;
               padding: 0 !important;
@@ -660,26 +676,44 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
               box-shadow: none !important;
               transform: none !important;
               display: block !important;
+              position: relative !important;
+              min-height: auto !important;
             }
+
             .no-print { display: none !important; }
-            .no-screen { display: table-header-group !important; }
-            .table-footer-group { display: table-footer-group !important; }
-            
-            body { 
-              background: white !important; 
-              counter-reset: page;
-              margin: 0 !important;
-              padding: 0 !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
+            .no-screen { display: flex !important; }
+
+            .repeating-header-print {
+              position: fixed !important;
+              top: -20mm; /* Move UP into the @page top margin */
+              left: 0;
+              width: 210mm;
+              height: 20mm;
+              padding: 0 48px;
+              box-sizing: border-box;
+              display: flex !important;
+              flex-direction: column;
+              justify-content: flex-end;
+              background: white !important;
+              z-index: 9999;
             }
 
-            @page {
-              size: A4;
-              margin: 10mm 0;
+            .repeating-footer-print {
+              position: fixed !important;
+              bottom: -20mm; /* Move DOWN into the @page bottom margin */
+              left: 0;
+              width: 210mm;
+              height: 20mm;
+              padding: 0 48px;
+              box-sizing: border-box;
+              display: flex !important;
+              flex-direction: column;
+              justify-content: flex-start;
+              background: white !important;
+              z-index: 9999;
             }
 
-            .page-number-counter::after {
+            .page-num-counter::after {
               content: "หน้า " counter(page);
             }
 
@@ -687,13 +721,11 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
               page-break-inside: avoid !important;
               break-inside: avoid !important;
             }
-            
-            /* Chrome sometimes ignores thead heights if not explicit in cells */
-            thead td, tfoot td {
-               background: white !important;
+
+            .break-inside-auto {
+              page-break-inside: auto !important;
             }
           }
-          .no-screen { display: none; }
         `}</style>
       </div>
     );
