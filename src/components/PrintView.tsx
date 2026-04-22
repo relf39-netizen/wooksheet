@@ -202,13 +202,30 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             }
           }
           @media print {
-            @page { size: A4; margin: 0; }
-            body { 
+            @page { 
+              size: A4; 
+              margin: 0 !important; 
+            }
+            html, body {
               margin: 0 !important;
               padding: 0 !important;
+              height: auto !important;
+              overflow: visible !important;
               background: white !important;
+              -webkit-print-color-adjust: exact;
             }
+            /* Hide everything that is not printable-area during print */
+            body > *:not(#root) { display: none !important; }
+            #root > *:not(.print-view-wrapper) { display: none !important; }
             .no-print { display: none !important; }
+            
+            #printable-area {
+              display: block !important;
+              width: 210mm !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              gap: 0 !important;
+            }
             .a4-sheet {
               width: 210mm !important;
               height: 297mm !important;
@@ -217,8 +234,10 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
               box-shadow: none !important;
               page-break-after: always !important;
               break-after: page !important;
+              display: flex !important;
+              background: white !important;
+              border: none !important;
             }
-            #printable-area { gap: 0 !important; }
           }
         `}</style>
       </div>
@@ -226,7 +245,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
   };
 
   return (
-    <div className="space-y-8 pb-20 max-w-[1400px] mx-auto px-4">
+    <div className="space-y-8 pb-20 max-w-[1400px] mx-auto px-4 print-view-wrapper">
       {/* UI Controls - Hidden on Print */}
       <div className="flex items-center justify-between bg-white p-6 rounded-3xl border border-slate-200 shadow-sm no-print sticky top-4 z-[50]">
         <button onClick={() => onNavigate('history')} className="flex items-center gap-2 text-slate-500 font-bold hover:text-indigo-600 transition-colors">
@@ -323,7 +342,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
         </div>
 
         {/* Row 1 / Col 2: Right Preview (Matching Fixed Height, Scrollable) */}
-        <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 no-print print:p-0 print:bg-transparent print:border-none print:overflow-visible">
+        <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 print:p-0 print:bg-transparent print:border-none print:overflow-visible">
           <div className="min-w-fit flex justify-center">
             {printArea()}
           </div>
