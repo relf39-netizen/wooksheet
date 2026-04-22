@@ -96,13 +96,14 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             style={{ width: '210mm', height: '297mm', minHeight: '297mm' }}
           >
             {/* Page Header (Every page) */}
-            <div className="h-[25mm] w-full flex flex-col justify-end px-[15mm] pb-2">
-              <div className="border-t-[3px] border-black pt-2 flex justify-between items-center">
+            <div className="h-[25mm] w-full flex flex-col justify-end px-[15mm]">
+              <div className="flex justify-between items-end pb-1 pr-1">
                 <div className="text-[14px] font-extrabold truncate uppercase pr-4">
                   ใบงาน/แบบฝึกหัด: {exercise.title}
                 </div>
-                <div className="text-[12px] font-bold shrink-0 text-slate-500">แผ่นที่ {pageIdx + 1} / {chunks.length}</div>
+                <div className="text-[11px] font-bold shrink-0 text-slate-500">แผ่นที่ {pageIdx + 1} / {chunks.length}</div>
               </div>
+              <div className="border-t-[3px] border-black mb-2"></div>
             </div>
 
             {/* Content Area */}
@@ -323,33 +324,33 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
 
         {/* Right Content: Scrollable Preview (Primary scrollbar) */}
         <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 no-print print:p-0 print:bg-transparent print:border-none print:overflow-visible">
-          <div className="min-w-fit flex justify-center">
+          <div className="min-w-fit flex flex-col items-center">
             {printArea()}
-          </div>
-        </div>
-      </div>
 
-      {/* Answer Key Section */}
-      <div className="bg-white p-12 rounded-3xl border border-slate-200 no-print max-w-[900px] mx-auto mb-12 shadow-sm">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black">?</div>
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">เฉลยแบบฝึกหัด</h2>
-            <p className="text-xs text-slate-400 font-medium">เฉพาะสำหรับคุณครู</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {allItems.map((item: any, idx: number) => (
-            <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center gap-4">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
-                {idx + 1}
+            {/* Answer Key Section (Now moved inside scrollable area to prevent overlap) */}
+            <div className="bg-white p-12 rounded-3xl border border-slate-200 no-print w-full max-w-[900px] mt-20 mb-12 shadow-sm">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black">?</div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">เฉลยแบบฝึกหัด</h2>
+                  <p className="text-xs text-slate-400 font-medium">เฉพาะสำหรับคุณครู</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <span className="text-[10px] font-black uppercase text-slate-500 block mb-1">คำตอบ</span>
-                <span className="text-base font-black text-indigo-700">{item.answer}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {allItems.map((item: any, idx: number) => (
+                  <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center gap-4">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-[10px] font-black uppercase text-slate-500 block mb-1">คำตอบ</span>
+                      <span className="text-base font-black text-indigo-700">{item.answer}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </div>
