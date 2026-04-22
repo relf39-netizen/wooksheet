@@ -242,7 +242,8 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
               min-height: 297mm;
               margin: 0 auto;
               background-color: white;
-              background-image: linear-gradient(to bottom, transparent 296mm, #eee 296mm, #eee 297mm, transparent 297mm);
+              /* More distinctive gray line for page break */
+              background-image: linear-gradient(to bottom, transparent 296.5mm, #cbd5e1 296.5mm, #cbd5e1 297mm, transparent 297mm);
               background-size: 100% 297mm;
             }
           }
@@ -307,16 +308,16 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
+      <div className="flex flex-col lg:flex-row gap-8 items-start h-[calc(100vh-200px)]">
         {/* Left Sidebar: Font Settings */}
-        <div className="w-full lg:w-[320px] no-print space-y-6 lg:sticky lg:top-24">
+        <div className="w-full lg:w-[320px] no-print space-y-6 lg:h-full lg:overflow-y-auto lg:pr-2">
           <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
               <Settings size={24} className="text-indigo-500" />
             </div>
             <h3 className="font-bold text-slate-900 mb-2">จูนขนาดอักษร</h3>
             <p className="text-[11px] text-slate-400 mb-8 leading-relaxed">
-              ในช่องพรีวิวจะแสดงขนาดจริงเมื่อสั่งพิมพ์ คุณครูสามารถปรับขนาดให้แต่ละข้อลงตัวกับหน้ากระดาษได้ครับ
+              คุณครูสามารถปรับขนาดอักษรเพื่อจัดให้เนื้อหาพอดีกับหน้ากระดาษ A4 (เส้นสีเทาเข้มคือจุดสิ้นสุดกระดาษแต่ละหน้าครับ)
             </p>
             <div className="space-y-6">
               <FontSizeInput label="ส่วนหัวข้อ" value={fontSettings.title} onChange={(v) => setFontSettings({...fontSettings, title: v})} />
@@ -328,9 +329,11 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           </div>
         </div>
 
-        {/* Right Content: The Printable Document */}
-        <div className="flex-1 w-full overflow-x-auto pb-8 print:p-0 flex justify-center lg:justify-start">
-          {printArea()}
+        {/* Right Content: Scrollable Preview */}
+        <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 lg:h-full overflow-y-auto p-8 no-print print:p-0 print:bg-transparent print:border-none print:overflow-visible">
+          <div className="min-w-fit flex justify-center lg:justify-start">
+            {printArea()}
+          </div>
         </div>
       </div>
 
