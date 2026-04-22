@@ -117,8 +117,16 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             <div 
               key={pageIdx}
               className="a4-sheet bg-white text-black relative flex flex-col overflow-hidden shadow-2xl print:shadow-none"
-              style={{ width: '210mm', height: '297mm', minHeight: '297mm', boxSizing: 'border-box' }}
+              style={{ 
+                width: '210mm', 
+                height: '297mm', 
+                minHeight: '297mm', 
+                maxHeight: '297mm', // Strict height to prevent bleed
+                boxSizing: 'border-box',
+                pageBreakBefore: pageIdx > 0 ? 'always' : 'auto' // Force break between pages
+              }}
             >
+              {/* [MARGIN TOP: 30mm] - Section for Header and Top Padding */}
               <div className="h-[30mm] w-full flex flex-col justify-end px-[20mm]">
                 <div className="flex justify-between items-end pb-1 pr-1 font-bold">
                   <div className="text-[14px] truncate uppercase pr-4">แบบฝึกหัด: {exercise.title}</div>
@@ -127,6 +135,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                 <div className="border-t-[3px] border-black mb-4"></div>
               </div>
 
+              {/* [MARGIN SIDE: 20mm] - Main content container */}
               <div className="flex-1 px-[20mm] py-4 flex flex-col overflow-hidden">
                 {pageIdx === 0 && (
                   <>
@@ -147,10 +156,13 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                       </div>
                     </div>
                     <div className="mb-6 text-center">
+                      {/* [FONT SIZE: Title] */}
                       <h1 className="font-extrabold mb-1" style={{ fontSize: `${fontSettings.title}pt` }}>{exercise.title}</h1>
+                      {/* [FONT SIZE: Indicators] */}
                       <p className="text-slate-600 font-bold italic mb-4" style={{ fontSize: `${fontSettings.indicators}pt` }}>
                         มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
                       </p>
+                      {/* [FONT SIZE: Description] */}
                       <div className="bg-slate-50 p-4 border-l-8 border-black italic text-left leading-relaxed shadow-sm" style={{ fontSize: `${fontSettings.description}pt` }}>
                         <span className="font-extrabold not-italic mr-2 underline">คำชี้แจง:</span>
                         {contentData.description}
@@ -165,6 +177,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                     const globalIdx = (pageIdx * itemsPerPage) + idx + 1;
                     return (
                       <div key={idx} className="break-inside-avoid">
+                        {/* [FONT SIZE: Question] */}
                         <div className="flex gap-4 mb-4" style={{ fontSize: `${fontSettings.question}pt` }}>
                           <span className="font-bold shrink-0">{globalIdx}.</span>
                           <div className="font-bold leading-relaxed">{item.question}</div>
@@ -172,6 +185,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                         {item.options ? (
                           <div className="grid grid-cols-2 gap-x-12 gap-y-3 ml-10 text-slate-800">
                             {item.options.map((opt: string, oIdx: number) => (
+                              /* [FONT SIZE: Option] */
                               <div key={oIdx} className="flex items-start gap-3" style={{ fontSize: `${fontSettings.option}pt` }}>
                                 <div className="rounded-full border-2 border-black flex items-center justify-center font-bold shrink-0 mt-1" style={{ width: '22px', height: '22px', fontSize: '10pt' }}>
                                   {String.fromCharCode(65 + oIdx)}
@@ -197,6 +211,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                 </div>
               </div>
 
+              {/* [MARGIN BOTTOM: 25mm] - Section for Footer and Bottom Padding */}
               <div className="h-[25mm] w-full flex flex-col justify-center px-[20mm] pb-4">
                 <div className="border-t-2 border-black pt-3 flex justify-between items-center text-[10px] font-bold">
                   <div className="flex flex-wrap items-center gap-x-6">
