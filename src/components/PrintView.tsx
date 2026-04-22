@@ -204,14 +204,16 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           @media print {
             @page { 
               size: A4; 
-              margin: 0 !important; 
+              margin: 0mm !important; 
             }
             html, body {
               margin: 0 !important;
               padding: 0 !important;
-              background: white !important;
+              width: 210mm !important;
               height: auto !important;
-              overflow: visible !important;
+              background: white !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
             .no-print { display: none !important; }
             
@@ -220,21 +222,27 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
               width: 210mm !important;
               margin: 0 !important;
               padding: 0 !important;
-              gap: 0 !important;
-              transform: none !important; /* Reset zoom for printing */
+              transform: none !important;
+              filter: none !important;
+              transition: none !important;
             }
             .a4-sheet {
+              display: block !important;
               width: 210mm !important;
               height: 297mm !important;
               margin: 0 !important;
               padding: 0 !important;
               box-shadow: none !important;
+              border: none !important;
               page-break-after: always !important;
               break-after: page !important;
-              display: flex !important;
-              background: white !important;
-              border: none !important;
               position: relative !important;
+              overflow: hidden !important;
+              background: white !important;
+            }
+            /* Visual fixes for internal elements during print */
+            .a4-sheet * {
+              -webkit-print-color-adjust: exact !important;
             }
           }
         `}</style>
