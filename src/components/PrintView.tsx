@@ -281,9 +281,9 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start h-[calc(100vh-200px)]">
-        {/* Left Sidebar: Font Settings */}
-        <div className="w-full lg:w-[320px] no-print space-y-6 lg:h-full lg:overflow-y-auto lg:pr-2">
+      <div className="flex flex-col lg:flex-row gap-8 items-start h-[calc(100vh-140px)]">
+        {/* Left Sidebar: Font Settings (No individual scrollbar) */}
+        <div className="w-full lg:w-[320px] no-print space-y-6 flex-shrink-0">
           <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
               <Settings size={24} className="text-indigo-500" />
@@ -321,8 +321,8 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           </div>
         </div>
 
-        {/* Right Content: Scrollable Preview */}
-        <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 lg:h-full overflow-y-auto p-12 no-print print:p-0 print:bg-transparent print:border-none print:overflow-visible">
+        {/* Right Content: Scrollable Preview (Primary scrollbar) */}
+        <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 no-print print:p-0 print:bg-transparent print:border-none print:overflow-visible">
           <div className="min-w-fit flex justify-center">
             {printArea()}
           </div>
