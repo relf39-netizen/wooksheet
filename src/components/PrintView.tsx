@@ -239,12 +239,47 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           @media screen {
             .print-doc-container {
               width: 210mm;
-              min-height: 297mm;
               margin: 0 auto;
               background-color: white;
-              /* More distinctive gray line for page break */
-              background-image: linear-gradient(to bottom, transparent 296.5mm, #cbd5e1 296.5mm, #cbd5e1 297mm, transparent 297mm);
-              background-size: 100% 297mm;
+              box-shadow: 0 0 50px -12px rgb(0 0 0 / 0.15);
+              /* Simulate physical gap between sheets */
+              background-image: linear-gradient(
+                to bottom,
+                white 0mm,
+                white 296mm,
+                #f1f5f9 296mm,
+                #f1f5f9 308mm,
+                #cbd5e1 308mm,
+                #cbd5e1 309mm,
+                white 309mm
+              );
+              background-size: 100% 309mm;
+              position: relative;
+            }
+            /* Visual page badges */
+            .print-doc-container::before {
+              content: "แผ่นที่ 1";
+              position: absolute;
+              left: -80px;
+              top: 20px;
+              background: #6366f1;
+              color: white;
+              padding: 4px 12px;
+              border-radius: 8px;
+              font-size: 12px;
+              font-weight: bold;
+            }
+            .print-doc-container::after {
+              content: "แผ่นที่ 2";
+              position: absolute;
+              left: -80px;
+              top: calc(309mm + 20px);
+              background: #6366f1;
+              color: white;
+              padding: 4px 12px;
+              border-radius: 8px;
+              font-size: 12px;
+              font-weight: bold;
             }
           }
           @media print {
