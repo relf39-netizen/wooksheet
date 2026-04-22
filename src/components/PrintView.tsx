@@ -87,7 +87,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
   // We render this as the ONLY content to ensure browsers can print it perfectly.
   if (isPrintPreview) {
     return (
-      <div className="min-h-screen bg-slate-900 font-sarabun text-left">
+      <div className="min-h-screen bg-slate-900 font-sarabun text-left print-mode-active">
         {/* Top Control Bar */}
         <div className="fixed top-0 left-0 right-0 z-[100] bg-slate-900/90 backdrop-blur-md border-b border-white/10 p-4 flex items-center justify-between no-print">
           <button 
@@ -210,22 +210,6 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             </div>
           ))}
         </div>
-
-        <style>{`
-          @media print {
-            @page { size: A4; margin: 0 !important; }
-            body { background: white !important; }
-            .no-print { display: none !important; }
-            #print-content { padding: 0 !important; margin: 0 !important; display: block !important; }
-            .a4-sheet { 
-              page-break-after: always !important; 
-              break-after: page !important;
-              box-shadow: none !important;
-              margin: 0 !important;
-              display: flex !important;
-            }
-          }
-        `}</style>
       </div>
     );
   }
@@ -436,29 +420,32 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
         
         @media print {
           @page { size: A4; margin: 0 !important; }
+          
+          /* Hide everything except our print mode container */
+          body > #root > div:not(.print-mode-active),
+          header, nav, footer, .no-print {
+            display: none !important;
+          }
+
+          /* Force correct print layout */
           html, body {
             margin: 0 !important;
             padding: 0 !important;
             width: 210mm !important;
-            height: auto !important;
             background: white !important;
             overflow: visible !important;
           }
-          /* Completely wipe out everything on the page except the preview container */
-          body > #root > div:not(.print-mode-active),
-          .print-view-wrapper > *:not(#final-preview-container) {
-            display: none !important;
-          }
-          #final-preview-container {
+
+          /* Main Container Control - NO POSITION ABSOLUTE */
+          #print-content {
             display: block !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
             width: 210mm !important;
             margin: 0 !important;
             padding: 0 !important;
-            z-index: 9999 !important;
+            position: static !important;
+            visibility: visible !important;
           }
+
           .a4-sheet {
             display: flex !important;
             width: 210mm !important;
@@ -471,6 +458,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             position: relative !important;
             background: white !important;
           }
+
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
