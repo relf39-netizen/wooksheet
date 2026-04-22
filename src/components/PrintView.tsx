@@ -282,10 +282,10 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start h-[calc(100vh-140px)]">
-        {/* Left Sidebar: Font Settings (No individual scrollbar) */}
+      <div className="flex flex-col lg:flex-row gap-8 items-stretch h-[850px]">
+        {/* Row 1 / Col 1: Left Sidebar (Fixed Height) */}
         <div className="w-full lg:w-[320px] no-print space-y-6 flex-shrink-0">
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm h-full overflow-y-auto no-scrollbar">
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
               <Settings size={24} className="text-indigo-500" />
             </div>
@@ -311,7 +311,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                 </div>
               </div>
 
-              <div className="border-t border-slate-100 pt-6 space-y-6">
+              <div className="border-t border-slate-100 pt-6 space-y-6 text-left">
                 <FontSizeInput label="ส่วนหัวข้อ" value={fontSettings.title} onChange={(v) => setFontSettings({...fontSettings, title: v})} />
                 <FontSizeInput label="มาตรฐาน/ตัวชี้วัด" value={fontSettings.indicators} onChange={(v) => setFontSettings({...fontSettings, indicators: v})} />
                 <FontSizeInput label="คำชี้แจง" value={fontSettings.description} onChange={(v) => setFontSettings({...fontSettings, description: v})} />
@@ -322,35 +322,35 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           </div>
         </div>
 
-        {/* Right Content: Scrollable Preview (Primary scrollbar) */}
+        {/* Row 1 / Col 2: Right Preview (Matching Fixed Height, Scrollable) */}
         <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 no-print print:p-0 print:bg-transparent print:border-none print:overflow-visible">
-          <div className="min-w-fit flex flex-col items-center">
+          <div className="min-w-fit flex justify-center">
             {printArea()}
+          </div>
+        </div>
+      </div>
 
-            {/* Answer Key Section (Now moved inside scrollable area to prevent overlap) */}
-            <div className="bg-white p-12 rounded-3xl border border-slate-200 no-print w-full max-w-[900px] mt-20 mb-12 shadow-sm">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black">?</div>
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">เฉลยแบบฝึกหัด</h2>
-                  <p className="text-xs text-slate-400 font-medium">เฉพาะสำหรับคุณครู</p>
-                </div>
+      {/* Row 2: Answer Key Section (At the very bottom) */}
+      <div className="bg-white p-12 rounded-3xl border border-slate-200 no-print max-w-full mx-auto mt-12 mb-12 shadow-sm">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black">?</div>
+          <div className="text-left">
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">เฉลยแบบฝึกหัด</h2>
+            <p className="text-xs text-slate-400 font-medium">เฉพาะสำหรับคุณครูใช้ตรวจงาน</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {allItems.map((item: any, idx: number) => (
+            <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center gap-4">
+              <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                {idx + 1}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {allItems.map((item: any, idx: number) => (
-                  <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center gap-4">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
-                      {idx + 1}
-                    </div>
-                    <div className="flex-1">
-                      <span className="text-[10px] font-black uppercase text-slate-500 block mb-1">คำตอบ</span>
-                      <span className="text-base font-black text-indigo-700">{item.answer}</span>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex-1 text-left">
+                <span className="text-[10px] font-black uppercase text-slate-500 block mb-1">คำตอบ</span>
+                <span className="text-base font-black text-indigo-700">{item.answer}</span>
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
