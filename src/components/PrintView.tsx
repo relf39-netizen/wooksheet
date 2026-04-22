@@ -74,7 +74,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     ? contentData.sections.flatMap((s: any) => s.items) 
     : contentData.items;
 
-  const printArea = () => {
+  const printArea = (isFinalPrint: boolean = false) => {
     const f = fontSettings;
 
     // Split items into chunks for each page
@@ -85,9 +85,9 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     
     return (
       <div 
-        id="printable-area" 
-        className="flex flex-col items-center gap-10 no-print-bg transition-transform duration-300"
-        style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
+        id={isFinalPrint ? "final-print-zone-inner" : "printable-area"} 
+        className={`flex flex-col items-center gap-10 no-print-bg transition-transform duration-300 ${!isFinalPrint ? 'screen-only' : ''}`}
+        style={!isFinalPrint ? { transform: `scale(${zoom})`, transformOrigin: 'top center' } : {}}
       >
         {chunks.map((chunk, pageIdx) => (
           <div 
@@ -202,32 +202,28 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             }
           }
           @media print {
-            @page { 
-              size: A4; 
-              margin: 0mm !important; 
-            }
+            @page { size: A4; margin: 0 !important; }
+            body > #root > *:not(.print-view-wrapper) { display: none !important; }
+            .print-view-wrapper > *:not(#final-print-zone) { display: none !important; }
+            .no-print, header, nav, footer { display: none !important; }
+            
             html, body {
               margin: 0 !important;
               padding: 0 !important;
               width: 210mm !important;
               height: auto !important;
               background: white !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
+              overflow: visible !important;
             }
-            .no-print { display: none !important; }
-            
-            #printable-area {
+
+            #final-print-zone {
               display: block !important;
               width: 210mm !important;
               margin: 0 !important;
               padding: 0 !important;
-              transform: none !important;
-              filter: none !important;
-              transition: none !important;
             }
+
             .a4-sheet {
-              display: block !important;
               width: 210mm !important;
               height: 297mm !important;
               margin: 0 !important;
@@ -236,13 +232,10 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
               border: none !important;
               page-break-after: always !important;
               break-after: page !important;
-              position: relative !important;
-              overflow: hidden !important;
+              display: flex !important;
+              flex-direction: column !important;
               background: white !important;
-            }
-            /* Visual fixes for internal elements during print */
-            .a4-sheet * {
-              -webkit-print-color-adjust: exact !important;
+              position: relative !important;
             }
           }
         `}</style>
@@ -250,10 +243,20 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     );
   };
 
+  // Helper for actual print content (Pure sheets, no UI interference)
+  const FinalPrintContent = () => (
+    <div id="final-print-zone" className="hidden print:block print:w-[210mm]">
+      {printArea(true)}
+    </div>
+  );
+
   return (
-    <div className="space-y-8 pb-20 max-w-[1400px] mx-auto px-4 print-view-wrapper">
-      {/* UI Controls - Hidden on Print */}
-      <div className="flex items-center justify-between bg-white p-6 rounded-3xl border border-slate-200 shadow-sm no-print sticky top-4 z-[50]">
+    <div className="space-y-8 pb-20 max-w-[1400px] mx-auto px-4 print-view-wrapper relative">
+      {/* 1. Final Print Area (The 'Absolute Separation' Container) */}
+      <FinalPrintContent />
+
+      {/* 2. UI Controls - Hidden on Print */}
+      <div className="flex items-center justify-between bg-white p-6 rounded-3xl border border-slate-200 shadow-sm no-print sticky top-4 z-[100]">
         <button onClick={() => onNavigate('history')} className="flex items-center gap-2 text-slate-500 font-bold hover:text-indigo-600 transition-colors">
           <ChevronLeft size={20} />
           <span>ย้อนกลับคลังแบบฝึกหัด</span>
@@ -347,16 +350,16 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           </div>
         </div>
 
-        {/* Row 1 / Col 2: Right Preview (Matching Fixed Height, Scrollable) */}
-        <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 print:p-0 print:bg-transparent print:border-none print:overflow-visible">
+        {/* Row 1 / Col 2: Right Preview (Scrollable) */}
+        <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12">
           <div className="min-w-fit flex justify-center">
-            {printArea()}
+            {printArea(false)}
           </div>
         </div>
       </div>
 
-      {/* Row 2: Answer Key Section (At the very bottom) */}
-      <div className="bg-white p-12 rounded-3xl border border-slate-200 no-print max-w-full mx-auto mt-12 mb-12 shadow-sm">
+      {/* Row 2: Answer Key Section */}
+      <div className="bg-white p-12 rounded-3xl border border-slate-200 no-print max-w-full mx-auto mt-12 mb-12 shadow-sm text-left">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black">?</div>
           <div className="text-left">
