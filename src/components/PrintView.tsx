@@ -76,37 +76,45 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     printWindow.document.write(`
       <html>
         <head>
-          <title>Print</title>
+          <title>Print - ${exercise.title}</title>
           <style>
+            @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap');
             @page { size: A4; margin: 0; }
-
-            body {
-              margin: 0;
-              font-family: 'Sarabun', sans-serif;
-            }
-
+            body { margin: 0; padding: 0; font-family: 'Sarabun', sans-serif; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            
             .page {
               width: 210mm;
-              min-height: 297mm;
-              padding: 10mm;
+              height: 297mm;
+              display: block;
+              position: relative;
+              overflow: hidden;
+              background: white;
               box-sizing: border-box;
               page-break-after: always;
             }
 
-            .header { border-bottom: 2px solid black; padding-bottom: 4px; margin-bottom: 10px; }
-            .header-row { display: flex; justify-content: space-between; font-weight: bold; }
-            .student { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; }
-            .title { text-align: center; margin-bottom: 10px; }
-            .desc { border-left: 4px solid black; padding: 6px; margin-bottom: 10px; }
-            .q-block { margin-bottom: 10mm; break-inside: avoid; }
-            .q-title { font-weight: bold; }
-            .options { display: grid; grid-template-columns: 1fr 1fr; margin-left: 10mm; margin-top: 5px; gap: 5px; }
-            .essay div { border-bottom: 1px dotted black; height: 8mm; margin-top: 5px; }
-            .footer { border-top: 1px solid black; padding-top: 5px; display: flex; justify-content: space-between; font-size: 10pt; }
+            .header { height: 30mm; width: 100%; border-bottom: 3px solid black; padding: 12mm 20mm 2mm 20mm; display: block; box-sizing: border-box; }
+            .header-row { display: block; width: 100%; }
+            .header-left { float: left; font-weight: 800; font-size: 15pt; }
+            .header-right { float: right; font-weight: 800; font-size: 12pt; color: #666; }
+            .clear { clear: both; }
 
-            * {
-              box-sizing: border-box;
-            }
+            .content { height: 242mm; width: 100%; padding: 5mm 20mm; display: block; box-sizing: border-box; overflow: hidden; }
+            .student { border-bottom: 2px solid black; padding-bottom: 4mm; margin-bottom: 8mm; font-size: 15pt; font-weight: 800; display: block; overflow: hidden; }
+            .title-area { text-align: center; margin-bottom: 6mm; display: block; }
+            .desc-box { border-left: 8px solid black; background: #f9f9f9; padding: 12pt; margin-bottom: 10mm; line-height: 1.6; display: block; }
+
+            .q-block { margin-bottom: 10mm; display: block; page-break-inside: avoid; }
+            .q-title { font-weight: 800; line-height: 1.5; display: block; }
+            .options-container { margin-left: 10mm; margin-top: 4mm; display: block; overflow: hidden; }
+            .option-item { width: 48%; float: left; vertical-align: top; margin-bottom: 4mm; line-height: 1.4; }
+
+            .footer { height: 25mm; width: 100%; border-top: 2px solid black; padding: 4mm 20mm; display: block; box-sizing: border-box; position: absolute; bottom: 0; left: 0; }
+            .footer-left { float: left; font-size: 12pt; font-weight: 800; }
+            .footer-right { float: right; font-size: 10pt; opacity: 0.6; }
+
+            .no-print { display: none !important; }
+            * { box-sizing: border-box; }
           </style>
         </head>
         <body>
@@ -119,10 +127,9 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
 
     printWindow.document.close();
     printWindow.focus();
-    // Wait a bit for images/fonts if any
     setTimeout(() => {
       printWindow.print();
-    }, 500);
+    }, 800);
   };
 
   if (loading) return <div className="text-center py-20">กำลังจัดเตรียมไฟล์...</div>;
@@ -146,83 +153,121 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
   // ===== PRINT PREVIEW MODE (FIXED VERSION) =====
 if (isPrintPreview) {
   return (
-    <div className="print-root font-sarabun">
+    <div className="print-root font-sarabun text-left">
 
-      {/* ปุ่ม (ไม่พิมพ์) */}
-      <div className="no-print fixed top-0 left-0 right-0 bg-slate-900 text-white p-4 flex justify-between z-50">
-        <button onClick={() => setIsPrintPreview(false)}>← กลับ</button>
-        <button onClick={handlePrintNewWindow}>🖨 พิมพ์</button>
+      {/* Control Bar */}
+      <div className="no-print fixed top-0 left-0 right-0 bg-slate-900 border-b border-white/10 text-white p-6 flex justify-between items-center z-[200] shadow-2xl backdrop-blur-md">
+        <button 
+          onClick={() => setIsPrintPreview(false)}
+          className="bg-white/10 hover:bg-white/20 px-8 py-3 rounded-2xl font-bold transition-all flex items-center gap-2"
+        >
+          <ChevronLeft size={20} />
+          <span>กลับไปแก้ไข</span>
+        </button>
+        <div className="flex flex-col items-center">
+          <span className="text-[14px] font-black tracking-widest text-indigo-400 uppercase">A4 Print Preview Mode</span>
+          <span className="text-[10px] text-slate-500 italic">ขนาดจริง 210mm x 297mm (Block Logic)</span>
+        </div>
+        <button 
+          onClick={handlePrintNewWindow}
+          className="bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-2xl font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-xl shadow-indigo-900/40 active:scale-95"
+        >
+          <Printer size={22} />
+          <span>สั่งพิมพ์เดี๋ยวนี้</span>
+        </button>
       </div>
 
       {/* เอกสาร */}
-      <div id="print-content">
+      <div id="print-content" className="pt-24 pb-32 overflow-y-auto no-scrollbar">
         {chunks.map((chunk, pageIdx) => (
           <div key={pageIdx} className="page">
 
-            {/* HEADER */}
+            {/* HEADER BLOCK: 30mm */}
             <div className="header">
               <div className="header-row">
-                <div>แบบฝึกหัด: {exercise.title}</div>
-                <div>หน้า {pageIdx + 1}/{chunks.length}</div>
+                <div className="header-left">แบบฝึกหัด: {exercise.title}</div>
+                <div className="header-right">หน้า {pageIdx + 1}/{chunks.length}</div>
+                <div className="clear"></div>
               </div>
             </div>
 
-            {/* CONTENT */}
+            {/* CONTENT BLOCK: 242mm */}
             <div className="content">
-
               {pageIdx === 0 && (
                 <>
                   <div className="student">
-                    <div>ชื่อ-สกุล: ____________________________</div>
-                    <div>เลขที่: ____</div>
-                    <div>ชั้น: ____/____</div>
+                    <div style={{ float: 'left', width: '60%' }}>ชื่อ-นามสกุล: ..................................................................................</div>
+                    <div style={{ float: 'left', width: '15%' }}>เลขที่: .......</div>
+                    <div style={{ float: 'right', width: '25%', textAlign: 'right' }}>ชั้น: ......... / .........</div>
+                    <div className="clear"></div>
                   </div>
 
-                  <div className="title">
-                    <h1 style={{ fontSize: `${fontSettings.title}pt` }}>
+                  <div className="title-area">
+                    <h1 style={{ fontSize: `${fontSettings.title + 2}pt`, fontWeight: '800', marginBottom: '4px' }}>
                       {exercise.title}
                     </h1>
-                    <p style={{ fontSize: `${fontSettings.indicators}pt` }}>
-                      {contentData.indicators || exercise.indicators}
+                    <p style={{ fontSize: `${fontSettings.indicators + 1.5}pt`, fontWeight: 'bold', color: '#333' }}>
+                      มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
                     </p>
                   </div>
 
-                  <div className="desc" style={{ fontSize: `${fontSettings.description}pt` }}>
-                    <b>คำชี้แจง:</b> {contentData.description}
+                  <div className="desc-box" style={{ fontSize: `${fontSettings.description + 1.5}pt` }}>
+                    <b style={{ textDecoration: 'underline', marginRight: '10px' }}>คำชี้แจง:</b> {contentData.description}
                   </div>
                 </>
               )}
 
-              {/* QUESTIONS */}
+              {/* QUESTIONS LIST */}
               <div className="questions">
                 {chunk.map((item: any, idx: number) => {
                   const num = pageIdx * itemsPerPage + idx + 1;
                   return (
                     <div key={idx} className="q-block">
-
                       <div
                         className="q-title"
-                        style={{ fontSize: `${fontSettings.question}pt` }}
+                        style={{ fontSize: `${fontSettings.question + 1.5}pt` }}
                       >
-                        {num}. {item.question}
+                        <span style={{ marginRight: '12pt' }}>{num}.</span>
+                        {item.question}
                       </div>
 
                       {item.options ? (
-                        <div className="options">
+                        <div className="options-container">
                           {item.options.map((opt: string, i: number) => (
                             <div
                               key={i}
-                              style={{ fontSize: `${fontSettings.option}pt` }}
+                              className="option-item"
+                              style={{ fontSize: `${fontSettings.option + 1.5}pt` }}
                             >
-                              ○ {String.fromCharCode(65 + i)}. {opt}
+                              <div style={{ 
+                                width: '26px', 
+                                height: '26px', 
+                                border: '2.5px solid black', 
+                                borderRadius: '50%', 
+                                display: 'inline-block', 
+                                textAlign: 'center', 
+                                lineHeight: '21px', 
+                                fontWeight: '800', 
+                                fontSize: '11pt',
+                                marginRight: '10pt',
+                                verticalAlign: 'middle'
+                              }}>
+                                {String.fromCharCode(65 + i)}
+                              </div>
+                              <span style={{ verticalAlign: 'middle' }}>{opt}</span>
                             </div>
                           ))}
+                          <div className="clear"></div>
                         </div>
                       ) : (
-                        <div className="essay">
-                          <div></div>
-                          <div></div>
-                          <div></div>
+                        <div className="options-container">
+                          <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
+                          {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
+                            <>
+                              <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
+                              <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -231,140 +276,71 @@ if (isPrintPreview) {
               </div>
             </div>
 
-            {/* FOOTER */}
+            {/* FOOTER BLOCK: 25mm */}
             <div className="footer">
-              <div>วิชา: {exercise.course} | ครู: {user.name}</div>
-              <div>EduGen</div>
+              <div className="footer-left">รายวิชา: {exercise.course} | ผู้สอน: คร.{user.name} {user.surname}</div>
+              <div className="footer-right">EduGen AI Professional Tool</div>
+              <div className="clear"></div>
             </div>
 
           </div>
         ))}
       </div>
 
-      {/* CSS PRODUCTION */}
+      {/* CSS PRODUCTION - NO FLEXBOX IN PAGE STRUCTURE */}
       <style>{`
         .print-root {
-          background: #eee;
+          background: #0f172a;
+          min-height: 100vh;
         }
 
         #print-content {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
+          display: block;
+          margin: 0 auto;
+          width: 210mm;
         }
 
         .page {
           width: 210mm;
-          min-height: 297mm;
+          height: 297mm;
           background: white;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          padding: 10mm;
+          margin: 0 auto 30px auto;
+          display: block;
+          position: relative;
           box-sizing: border-box;
           page-break-after: always;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+          overflow: hidden;
         }
 
-        .header {
-          border-bottom: 2px solid black;
-          padding-bottom: 4px;
-          margin-bottom: 10px;
-        }
+        .header { height: 30mm; width: 100%; border-bottom: 3px solid black; padding: 12mm 20mm 2mm 20mm; display: block; box-sizing: border-box; }
+        .header-row { display: block; width: 100%; }
+        .header-left { float: left; font-weight: 800; font-size: 15pt; }
+        .header-right { float: right; font-weight: 800; font-size: 12pt; color: #666; }
+        .clear { clear: both; }
 
-        .header-row {
-          display: flex;
-          justify-content: space-between;
-          font-weight: bold;
-        }
+        .content { height: 242mm; width: 100%; padding: 5mm 20mm; display: block; box-sizing: border-box; overflow: hidden; }
+        .student { border-bottom: 2px solid black; padding-bottom: 4mm; margin-bottom: 8mm; font-size: 15pt; font-weight: 800; display: block; overflow: hidden; }
+        .title-area { text-align: center; margin-bottom: 6mm; display: block; }
+        .desc-box { border-left: 8px solid black; background: #f9f9f9; padding: 12pt; margin-bottom: 10mm; line-height: 1.6; display: block; }
 
-        .student {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 10px;
-          font-weight: bold;
-        }
+        .q-block { margin-bottom: 10mm; display: block; page-break-inside: avoid; }
+        .q-title { font-weight: 800; line-height: 1.5; display: block; }
+        .options-container { margin-left: 10mm; margin-top: 4mm; display: block; overflow: hidden; }
+        .option-item { width: 48%; float: left; vertical-align: top; margin-bottom: 4mm; line-height: 1.4; }
 
-        .title {
-          text-align: center;
-          margin-bottom: 10px;
-        }
-
-        .desc {
-          border-left: 4px solid black;
-          padding: 6px;
-          margin-bottom: 10px;
-        }
-
-        .questions {
-          flex: 1;
-        }
-
-        .q-block {
-          margin-bottom: 10mm;
-          break-inside: avoid;
-        }
-
-        .q-title {
-          font-weight: bold;
-        }
-
-        .options {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          margin-left: 10mm;
-          margin-top: 5px;
-          gap: 5px;
-        }
-
-        .essay div {
-          border-bottom: 1px dotted black;
-          height: 8mm;
-          margin-top: 5px;
-        }
-
-        .footer {
-          border-top: 1px solid black;
-          padding-top: 5px;
-          display: flex;
-          justify-content: space-between;
-          font-size: 10pt;
-        }
+        .footer { height: 25mm; width: 100%; border-top: 2px solid black; padding: 4mm 20mm; display: block; box-sizing: border-box; position: absolute; bottom: 0; left: 0; }
+        .footer-left { float: left; font-size: 12pt; font-weight: 800; }
+        .footer-right { float: right; font-size: 10pt; opacity: 0.6; }
 
         @media print {
-          @page {
-            size: A4;
-            margin: 0;
-          }
-
-          body {
-            margin: 0;
-          }
-
-          .no-print {
-            display: none !important;
-          }
-
-          .print-root {
-            background: white;
-          }
-
-          #print-content {
-            width: 210mm;
-            margin: 0 auto;
-          }
-
-          .page {
-            width: 210mm;
-            min-height: 297mm;
-            padding: 10mm;
-            page-break-after: always;
-          }
-
-          * {
-            box-sizing: border-box;
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
-          }
+          @page { size: A4; margin: 0; }
+          body { margin: 0; padding: 0; background: white; }
+          .no-print { display: none !important; }
+          .print-root { background: white; padding: 0; }
+          #print-content { width: 210mm; margin: 0; padding: 0; }
+          .page { margin: 0; box-shadow: none; border: none; }
+          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       `}</style>
     </div>
