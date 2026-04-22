@@ -67,6 +67,64 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     }
   };
 
+  const handlePrintNewWindow = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const html = document.getElementById('print-content')?.innerHTML;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print</title>
+          <style>
+            @page { size: A4; margin: 0; }
+
+            body {
+              margin: 0;
+              font-family: 'Sarabun', sans-serif;
+            }
+
+            .page {
+              width: 210mm;
+              min-height: 297mm;
+              padding: 10mm;
+              box-sizing: border-box;
+              page-break-after: always;
+            }
+
+            .header { border-bottom: 2px solid black; padding-bottom: 4px; margin-bottom: 10px; }
+            .header-row { display: flex; justify-content: space-between; font-weight: bold; }
+            .student { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; }
+            .title { text-align: center; margin-bottom: 10px; }
+            .desc { border-left: 4px solid black; padding: 6px; margin-bottom: 10px; }
+            .q-block { margin-bottom: 10mm; break-inside: avoid; }
+            .q-title { font-weight: bold; }
+            .options { display: grid; grid-template-columns: 1fr 1fr; margin-left: 10mm; margin-top: 5px; gap: 5px; }
+            .essay div { border-bottom: 1px dotted black; height: 8mm; margin-top: 5px; }
+            .footer { border-top: 1px solid black; padding-top: 5px; display: flex; justify-content: space-between; font-size: 10pt; }
+
+            * {
+              box-sizing: border-box;
+            }
+          </style>
+        </head>
+        <body>
+          <div id="print-content">
+            ${html}
+          </div>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    // Wait a bit for images/fonts if any
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+  };
+
   if (loading) return <div className="text-center py-20">กำลังจัดเตรียมไฟล์...</div>;
   if (!exercise) return <div className="text-center py-20">ไม่พบแบบฝึกหัด</div>;
 
@@ -85,160 +143,233 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
 
   // MODE A: Dedicated Print Preview Mode (The "Room" the user requested)
   // We render this as the ONLY content to ensure browsers can print it perfectly.
-  if (isPrintPreview) {
-    return (
-      <div className="min-h-screen bg-slate-900 font-sarabun text-left print-mode-active">
-        {/* Top Control Bar */}
-        <div className="fixed top-0 left-0 right-0 z-[100] bg-slate-900/90 backdrop-blur-md border-b border-white/10 p-4 flex items-center justify-between no-print">
-          <button 
-            onClick={() => setIsPrintPreview(false)}
-            className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all"
-          >
-            <ChevronLeft size={18} />
-            <span>กลับไปแก้ไข</span>
-          </button>
-          
-          <button 
-            onClick={() => window.print()}
-            className="bg-indigo-500 hover:bg-indigo-400 text-white px-10 py-3 rounded-xl font-black uppercase tracking-widest flex items-center gap-3 shadow-xl transition-all active:scale-95"
-          >
-            <Printer size={20} />
-            <span>กดปุ่มนี้เพื่อพิมพ์จริง</span>
-          </button>
-        </div>
+  // ===== PRINT PREVIEW MODE (FIXED VERSION) =====
+if (isPrintPreview) {
+  return (
+    <div className="print-root font-sarabun">
 
-        {/* The Actual Sheets */}
-        <div id="print-content" className="pt-24 pb-32 flex flex-col items-center gap-10 print:p-0 print:m-0 print:block">
-          <div className="no-print bg-indigo-500/10 text-indigo-300 px-4 py-2 rounded-full text-[11px] font-bold mb-4 border border-indigo-500/20">
-            ตัวอย่างก่อนพิมพ์ขนาด A4 (210mm x 297mm)
-          </div>
-          
-          {chunks.map((chunk, pageIdx) => (
-            <div 
-              key={pageIdx}
-              className="a4-sheet bg-white text-black shadow-2xl print:shadow-none"
-              style={{ 
-                display: 'block', // Use block instead of flex
-                width: '210mm', 
-                height: '297mm', 
-                padding: '0',
-                margin: '0 auto',
-                boxSizing: 'border-box',
-                pageBreakAfter: 'always',
-                backgroundColor: 'white',
-                position: 'relative'
-              }}
-            >
-              {/* HEADER BLOCK: Fixed 30mm height */}
-              <div style={{ height: '30mm', width: '100%', padding: '0 20mm', display: 'block', boxSizing: 'border-box', paddingTop: '10mm' }}>
-                <div style={{ borderBottom: '3px solid black', paddingBottom: '2mm', overflow: 'hidden' }}>
-                  <div style={{ float: 'left', fontSize: '12pt', fontWeight: 'bold' }}>แบบฝึกหัด: {exercise.title}</div>
-                  <div style={{ float: 'right', fontSize: '10pt', fontWeight: 'bold', color: '#666' }}>หน้า {pageIdx + 1} / {chunks.length}</div>
-                  <div style={{ clear: 'both' }}></div>
-                </div>
-              </div>
+      {/* ปุ่ม (ไม่พิมพ์) */}
+      <div className="no-print fixed top-0 left-0 right-0 bg-slate-900 text-white p-4 flex justify-between z-50">
+        <button onClick={() => setIsPrintPreview(false)}>← กลับ</button>
+        <button onClick={handlePrintNewWindow}>🖨 พิมพ์</button>
+      </div>
 
-              {/* CONTENT BLOCK: Main body with 20mm side padding */}
-              <div style={{ padding: '5mm 20mm', height: '242mm', display: 'block', boxSizing: 'border-box', overflow: 'hidden' }}>
-                {pageIdx === 0 && (
-                  <div style={{ marginBottom: '8mm', display: 'block' }}>
-                    {/* Name Entry Box */}
-                    <div style={{ borderBottom: '2px solid black', paddingBottom: '4mm', marginBottom: '6mm', fontSize: '13pt', fontWeight: 'bold', display: 'block', overflow: 'hidden' }}>
-                      <span style={{ float: 'left', width: '60%' }}>ชื่อ-นามสกุล: .....................................................................................</span>
-                      <span style={{ float: 'left', width: '15%' }}>เลขที่: .......</span>
-                      <span style={{ float: 'right', width: '25%', textAlign: 'right' }}>ชั้น: ......... / .........</span>
-                      <div style={{ clear: 'both' }}></div>
-                    </div>
-                    {/* Title Section */}
-                    <div style={{ textAlign: 'center', display: 'block', marginBottom: '5mm' }}>
-                      <h1 style={{ fontSize: `${fontSettings.title}pt`, fontWeight: '800', marginBottom: '1mm', lineHeight: '1.2' }}>{exercise.title}</h1>
-                      <p style={{ fontSize: `${fontSettings.indicators}pt`, fontWeight: 'bold', fontStyle: 'italic', color: '#444', marginBottom: '4mm' }}>
-                        มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
-                      </p>
-                      <div style={{ backgroundColor: '#f9f9f9', padding: '10pt', borderLeft: '8px solid black', fontStyle: 'italic', textAlign: 'left', lineHeight: '1.5', fontSize: `${fontSettings.description}pt` }}>
-                        <span style={{ fontWeight: '800', fontStyle: 'normal', textDecoration: 'underline', marginRight: '5pt' }}>คำชี้แจง:</span>
-                        {contentData.description}
-                      </div>
-                      <div style={{ marginTop: '5mm', borderTop: '2px solid black', opacity: '0.2' }}></div>
-                    </div>
-                  </div>
-                )}
+      {/* เอกสาร */}
+      <div id="print-content">
+        {chunks.map((chunk, pageIdx) => (
+          <div key={pageIdx} className="page">
 
-                {/* Question List: Standard Block Flow */}
-                <div style={{ display: 'block' }}>
-                  {chunk.map((item: any, idx: number) => {
-                    const globalIdx = (pageIdx * itemsPerPage) + idx + 1;
-                    return (
-                      <div key={idx} style={{ marginBottom: '8mm', display: 'block', breakInside: 'avoid' }}>
-                        <div style={{ fontSize: `${fontSettings.question}pt`, fontWeight: 'bold', marginBottom: '3mm', lineHeight: '1.4' }}>
-                          <span style={{ marginRight: '10pt' }}>{globalIdx}.</span>
-                          <span>{item.question}</span>
-                        </div>
-                        
-                        {item.options ? (
-                          <div style={{ marginLeft: '10mm', display: 'block' }}>
-                            {item.options.map((opt: string, oIdx: number) => (
-                              <div 
-                                key={oIdx} 
-                                style={{ 
-                                  width: '48%', 
-                                  display: 'inline-block', 
-                                  fontSize: `${fontSettings.option}pt`, 
-                                  marginBottom: '3mm',
-                                  verticalAlign: 'top',
-                                  lineHeight: '1.2'
-                                }}
-                              >
-                                <div style={{ 
-                                  width: '24px', 
-                                  height: '24px', 
-                                  border: '2px solid black', 
-                                  borderRadius: '50%', 
-                                  display: 'inline-block', 
-                                  textAlign: 'center', 
-                                  lineHeight: '20px', 
-                                  fontWeight: 'bold', 
-                                  fontSize: '10pt',
-                                  marginRight: '8pt'
-                                }}>
-                                  {String.fromCharCode(65 + oIdx)}
-                                </div>
-                                <span style={{ display: 'inline-block', width: 'calc(100% - 35px)', verticalAlign: 'top' }}>{opt}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div style={{ marginLeft: '10mm', display: 'block' }}>
-                            <div style={{ borderBottom: '1px dotted #333', height: '10mm', width: '95%' }}></div>
-                            {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
-                              <>
-                                <div style={{ borderBottom: '1px dotted #333', height: '10mm', width: '95%' }}></div>
-                                <div style={{ borderBottom: '1px dotted #333', height: '10mm', width: '95%' }}></div>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* FOOTER BLOCK: Fixed 25mm height */}
-              <div style={{ height: '25mm', width: '100%', padding: '0 20mm', display: 'block', boxSizing: 'border-box' }}>
-                <div style={{ borderTop: '2px solid black', paddingTop: '3mm', fontSize: '10pt', fontWeight: 'bold', overflow: 'hidden' }}>
-                  <div style={{ float: 'left' }}>
-                    รายวิชา: {exercise.course} | ผู้สอน: คร.{user.name} {user.surname}
-                  </div>
-                  <div style={{ float: 'right', fontSize: '8pt', opacity: '0.6' }}>EduGen AI Tool</div>
-                </div>
+            {/* HEADER */}
+            <div className="header">
+              <div className="header-row">
+                <div>แบบฝึกหัด: {exercise.title}</div>
+                <div>หน้า {pageIdx + 1}/{chunks.length}</div>
               </div>
             </div>
-          ))}
-        </div>
+
+            {/* CONTENT */}
+            <div className="content">
+
+              {pageIdx === 0 && (
+                <>
+                  <div className="student">
+                    <div>ชื่อ-สกุล: ____________________________</div>
+                    <div>เลขที่: ____</div>
+                    <div>ชั้น: ____/____</div>
+                  </div>
+
+                  <div className="title">
+                    <h1 style={{ fontSize: `${fontSettings.title}pt` }}>
+                      {exercise.title}
+                    </h1>
+                    <p style={{ fontSize: `${fontSettings.indicators}pt` }}>
+                      {contentData.indicators || exercise.indicators}
+                    </p>
+                  </div>
+
+                  <div className="desc" style={{ fontSize: `${fontSettings.description}pt` }}>
+                    <b>คำชี้แจง:</b> {contentData.description}
+                  </div>
+                </>
+              )}
+
+              {/* QUESTIONS */}
+              <div className="questions">
+                {chunk.map((item: any, idx: number) => {
+                  const num = pageIdx * itemsPerPage + idx + 1;
+                  return (
+                    <div key={idx} className="q-block">
+
+                      <div
+                        className="q-title"
+                        style={{ fontSize: `${fontSettings.question}pt` }}
+                      >
+                        {num}. {item.question}
+                      </div>
+
+                      {item.options ? (
+                        <div className="options">
+                          {item.options.map((opt: string, i: number) => (
+                            <div
+                              key={i}
+                              style={{ fontSize: `${fontSettings.option}pt` }}
+                            >
+                              ○ {String.fromCharCode(65 + i)}. {opt}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="essay">
+                          <div></div>
+                          <div></div>
+                          <div></div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* FOOTER */}
+            <div className="footer">
+              <div>วิชา: {exercise.course} | ครู: {user.name}</div>
+              <div>EduGen</div>
+            </div>
+
+          </div>
+        ))}
       </div>
-    );
-  }
+
+      {/* CSS PRODUCTION */}
+      <style>{`
+        .print-root {
+          background: #eee;
+        }
+
+        #print-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .page {
+          width: 210mm;
+          min-height: 297mm;
+          background: white;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          padding: 10mm;
+          box-sizing: border-box;
+          page-break-after: always;
+        }
+
+        .header {
+          border-bottom: 2px solid black;
+          padding-bottom: 4px;
+          margin-bottom: 10px;
+        }
+
+        .header-row {
+          display: flex;
+          justify-content: space-between;
+          font-weight: bold;
+        }
+
+        .student {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 10px;
+          font-weight: bold;
+        }
+
+        .title {
+          text-align: center;
+          margin-bottom: 10px;
+        }
+
+        .desc {
+          border-left: 4px solid black;
+          padding: 6px;
+          margin-bottom: 10px;
+        }
+
+        .questions {
+          flex: 1;
+        }
+
+        .q-block {
+          margin-bottom: 10mm;
+          break-inside: avoid;
+        }
+
+        .q-title {
+          font-weight: bold;
+        }
+
+        .options {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          margin-left: 10mm;
+          margin-top: 5px;
+          gap: 5px;
+        }
+
+        .essay div {
+          border-bottom: 1px dotted black;
+          height: 8mm;
+          margin-top: 5px;
+        }
+
+        .footer {
+          border-top: 1px solid black;
+          padding-top: 5px;
+          display: flex;
+          justify-content: space-between;
+          font-size: 10pt;
+        }
+
+        @media print {
+          @page {
+            size: A4;
+            margin: 0;
+          }
+
+          body {
+            margin: 0;
+          }
+
+          .no-print {
+            display: none !important;
+          }
+
+          .print-root {
+            background: white;
+          }
+
+          #print-content {
+            width: 210mm;
+            margin: 0 auto;
+          }
+
+          .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 10mm;
+            page-break-after: always;
+          }
+
+          * {
+            box-sizing: border-box;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
 
   // MODE B: Standard Editing Mode
   return (
