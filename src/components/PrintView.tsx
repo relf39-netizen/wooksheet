@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Printer, ChevronLeft, Settings, Save, Loader2 } from 'lucide-react';
+import { Printer, ChevronLeft, Settings, Save, Loader2, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import { Exercise, User } from '../types';
 
 export default function PrintView({ user, exerciseId, onNavigate }: { user: User, exerciseId: string | null, onNavigate: (page: string) => void }) {
@@ -14,6 +14,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     option: 16
   });
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [zoom, setZoom] = useState(0.7);
 
   useEffect(() => {
     const apiBase = '/server.cjs';
@@ -83,7 +84,11 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     }
     
     return (
-      <div id="printable-area" className="flex flex-col items-center gap-10 no-print-bg">
+      <div 
+        id="printable-area" 
+        className="flex flex-col items-center gap-10 no-print-bg transition-transform duration-300"
+        style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
+      >
         {chunks.map((chunk, pageIdx) => (
           <div 
             key={pageIdx}
@@ -229,6 +234,34 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
         </button>
 
         <div className="flex items-center gap-4">
+          {/* Zoom Controls */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 mr-2">
+            <button 
+              onClick={() => setZoom(Math.max(0.3, zoom - 0.1))}
+              className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-all shadow-sm"
+              title="ซูมออก"
+            >
+              <ZoomOut size={16} />
+            </button>
+            <div className="px-3 text-[11px] font-black text-slate-600 min-w-[50px] text-center">
+              {Math.round(zoom * 100)}%
+            </div>
+            <button 
+              onClick={() => setZoom(Math.min(1.5, zoom + 0.1))}
+              className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-all shadow-sm"
+              title="ซูมเข้า"
+            >
+              <ZoomIn size={16} />
+            </button>
+            <button 
+              onClick={() => setZoom(0.7)}
+              className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-all shadow-sm"
+              title="รีเซ็ต"
+            >
+              <Maximize size={16} />
+            </button>
+          </div>
+
           <button 
             onClick={handleSaveSettings}
             disabled={savingSettings}
