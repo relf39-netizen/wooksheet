@@ -209,14 +209,10 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             html, body {
               margin: 0 !important;
               padding: 0 !important;
+              background: white !important;
               height: auto !important;
               overflow: visible !important;
-              background: white !important;
-              -webkit-print-color-adjust: exact;
             }
-            /* Hide everything that is not printable-area during print */
-            body > *:not(#root) { display: none !important; }
-            #root > *:not(.print-view-wrapper) { display: none !important; }
             .no-print { display: none !important; }
             
             #printable-area {
@@ -225,6 +221,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
               margin: 0 !important;
               padding: 0 !important;
               gap: 0 !important;
+              transform: none !important; /* Reset zoom for printing */
             }
             .a4-sheet {
               width: 210mm !important;
@@ -237,6 +234,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
               display: flex !important;
               background: white !important;
               border: none !important;
+              position: relative !important;
             }
           }
         `}</style>
