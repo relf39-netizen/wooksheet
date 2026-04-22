@@ -13,6 +13,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     question: 16,
     option: 16
   });
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   useEffect(() => {
     const apiBase = '/server.cjs';
@@ -23,6 +24,9 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
         const content = JSON.parse(data.content);
         if (content.fontSettings) {
           setFontSettings(content.fontSettings);
+        }
+        if (content.itemsPerPage) {
+          setItemsPerPage(content.itemsPerPage);
         }
         setLoading(false);
       })
@@ -35,7 +39,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     if (!exercise) return;
     setSavingSettings(true);
     const content = JSON.parse(exercise.content);
-    const updatedContent = { ...content, fontSettings };
+    const updatedContent = { ...content, fontSettings, itemsPerPage };
     
     const apiBase = '/server.cjs';
     try {
@@ -52,7 +56,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
       });
       if (res.ok) {
         setExercise({ ...exercise, content: JSON.stringify(updatedContent) });
-        alert('บันทึกการตั้งค่าอักษรเรียบร้อยแล้ว');
+        alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
       }
     } catch (err) {
       alert('บันทึกไม่สำเร็จ');
@@ -65,221 +69,130 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
   if (!exercise) return <div className="text-center py-20">ไม่พบแบบฝึกหัด</div>;
 
   const contentData = JSON.parse(exercise.content);
+  const allItems = contentData.sections 
+    ? contentData.sections.flatMap((s: any) => s.items) 
+    : contentData.items;
 
   const printArea = () => {
     const f = fontSettings;
+
+    // Split items into chunks for each page
+    const chunks = [];
+    for (let i = 0; i < allItems.length; i += itemsPerPage) {
+      chunks.push(allItems.slice(i, i + itemsPerPage));
+    }
     
     return (
-      <div id="printable-area" className="print-doc-container bg-white text-black font-sarabun mx-auto relative shadow-2xl overflow-hidden">
-        {/*
-          Using <table> to repeat the header and footer naturally on every page.
-          Everything inside <thead> repeats every page.
-          Everything inside <tfoot> repeats every page.
-          Everything inside <tbody> flows across pages.
-        */}
-        <table className="w-full border-collapse">
-          <thead className="table-header-group">
-            <tr>
-              <td className="p-0 border-none">
-                {/* Repeating header with line and page number */}
-                <div className="h-[25mm] w-full bg-white flex flex-col justify-end px-[15mm] pb-2">
-                  <div className="border-t-[3px] border-black pt-2 flex justify-between items-center">
-                    <div className="text-[14px] font-extrabold truncate">
-                      ใบงาน/แบบฝึกหัด: {exercise.title}
-                    </div>
-                    <div className="text-[12px] font-bold page-counter-indicator shrink-0"></div>
+      <div id="printable-area" className="flex flex-col items-center gap-10 no-print-bg">
+        {chunks.map((chunk, pageIdx) => (
+          <div 
+            key={pageIdx}
+            className="a4-sheet bg-white text-black font-sarabun relative flex flex-col shadow-2xl overflow-hidden text-left"
+            style={{ width: '210mm', height: '297mm', minHeight: '297mm' }}
+          >
+            {/* Page Header (Every page) */}
+            <div className="h-[25mm] w-full flex flex-col justify-end px-[15mm] pb-2">
+              <div className="border-t-[3px] border-black pt-2 flex justify-between items-center">
+                <div className="text-[14px] font-extrabold truncate uppercase pr-4">
+                  ใบงาน/แบบฝึกหัด: {exercise.title}
+                </div>
+                <div className="text-[12px] font-bold shrink-0 text-slate-500">แผ่นที่ {pageIdx + 1} / {chunks.length}</div>
+              </div>
+            </div>
+
+            {/* Content Area */}
+            <div className="flex-1 px-[15mm] py-4 flex flex-col overflow-hidden">
+              {/* Student Info Box (Only on Page 1) */}
+              {pageIdx === 0 && (
+                <div className="border-b-2 border-black pb-4 mb-8 text-[13px] font-bold flex items-center gap-6">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="shrink-0">ชื่อ-นามสกุล:</span>
+                    <div className="border-b border-dotted border-black flex-1 h-4"></div>
+                  </div>
+                  <div className="flex items-center gap-2 w-[80px] shrink-0">
+                    <span className="shrink-0">เลขที่:</span>
+                    <div className="border-b border-dotted border-black flex-1 h-4 text-center"></div>
+                  </div>
+                  <div className="flex items-center gap-2 w-[110px] shrink-0">
+                    <span className="shrink-0">ชั้น:</span>
+                    <div className="border-b border-dotted border-black w-10 h-4 text-center"></div>
+                    <span className="shrink-0">/</span>
+                    <div className="border-b border-dotted border-black w-10 h-4 text-center"></div>
                   </div>
                 </div>
-              </td>
-            </tr>
-          </thead>
-          
-          <tbody className="table-row-group">
-            <tr>
-              <td className="p-0 border-none">
-                <div className="px-[15mm] pt-4 pb-8 flex flex-col">
-                  {/* Page 1 Specific: Student Info Box - Clean style */}
-                  <div className="border-b-2 border-black pb-4 mb-8 text-[13px] font-bold flex items-center gap-6 bg-white first-page-info">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="shrink-0">ชื่อ-นามสกุล:</span>
-                      <div className="border-b border-dotted border-black flex-1 h-4"></div>
-                    </div>
-                    <div className="flex items-center gap-2 w-[80px] shrink-0">
-                      <span className="shrink-0">เลขที่:</span>
-                      <div className="border-b border-dotted border-black flex-1 h-4 text-center"></div>
-                    </div>
-                    <div className="flex items-center gap-2 w-[110px] shrink-0">
-                      <span className="shrink-0">ชั้น:</span>
-                      <div className="border-b border-dotted border-black w-10 h-4 text-center"></div>
-                      <span className="shrink-0">/</span>
-                      <div className="border-b border-dotted border-black w-10 h-4 text-center"></div>
-                    </div>
+              )}
+
+              {/* Main Content Title (Only on Page 1) */}
+              {pageIdx === 0 && (
+                <div className="mb-6 text-center">
+                  <h1 className="font-extrabold mb-1 uppercase tracking-tighter" style={{ fontSize: `${f.title}pt` }}>{exercise.title}</h1>
+                  <p className="text-slate-600 font-bold italic mb-4" style={{ fontSize: `${f.indicators}pt` }}>
+                    มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
+                  </p>
+                  <div className="bg-slate-50 p-4 border-l-8 border-black italic text-left leading-relaxed shadow-sm" style={{ fontSize: `${f.description}pt` }}>
+                    <span className="font-extrabold not-italic mr-2">คำชี้แจง:</span>
+                    {contentData.description}
                   </div>
+                  <div className="mt-6 border-t-2 border-black w-full"></div>
+                </div>
+              )}
 
-                  <div className="leading-normal">
-                    {/* Page 1 Specific: Worksheet Title & Description */}
-                    <div className="mb-8 text-center first-page-topic">
-                      <h1 className="font-black mb-2 uppercase tracking-tighter" style={{ fontSize: `${f.title}pt`, lineHeight: 1.2 }}>{exercise.title}</h1>
-                      {(contentData.indicators || exercise.indicators) && (
-                        <p className="text-slate-600 font-bold italic mb-4" style={{ fontSize: `${f.indicators}pt` }}>
-                          มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
-                        </p>
-                      )}
-                      <div className="bg-slate-50 p-6 border-l-8 border-black italic text-left leading-relaxed shadow-sm" style={{ fontSize: `${f.description}pt` }}>
-                        <span className="font-extrabold not-italic mr-2">คำชี้แจง:</span>
-                        {contentData.description}
+              {/* Questions List for this chunk */}
+              <div className="space-y-6 flex-1">
+                {chunk.map((item: any, idx: number) => {
+                  const globalIdx = (pageIdx * itemsPerPage) + idx + 1;
+                  return (
+                    <div key={idx} className="break-inside-avoid">
+                      <div className="flex gap-4 mb-4" style={{ fontSize: `${f.question}pt` }}>
+                        <span className="font-bold shrink-0">{globalIdx}.</span>
+                        <div className="font-bold leading-relaxed">{item.question}</div>
                       </div>
-                      <div className="mt-8 border-t-2 border-black w-full"></div>
-                    </div>
-
-                    {/* Questions content */}
-                    <div className="printable-questions-container text-left">
-                      {contentData.sections ? (
-                        contentData.sections.map((sec: any, sIdx: number) => {
-                          const startIdx = contentData.sections.slice(0, sIdx).reduce((acc: number, curr: any) => acc + curr.items.length, 0) + 1;
-                          return (
-                            <div key={sIdx} className="mb-10 last:mb-0">
-                              <h3 className="font-bold text-center border-y border-black py-2 mb-6" style={{ fontSize: `${f.title * 0.8}pt` }}>ตอนที่ {sIdx + 1}: {sec.title}</h3>
-                              <div className="space-y-8">
-                                {sec.items.map((item: any, idx: number) => (
-                                  <div key={idx} className="break-inside-avoid mb-6">
-                                    <div className="flex gap-4 mb-4" style={{ fontSize: `${f.question}pt` }}>
-                                      <span className="font-bold shrink-0">{startIdx + idx}.</span>
-                                      <div className="font-bold leading-relaxed whitespace-pre-wrap break-words w-full">{item.question}</div>
-                                    </div>
-                                    {item.options ? (
-                                      <div className="grid grid-cols-2 gap-x-10 gap-y-4 ml-10">
-                                        {item.options.map((opt: string, oIdx: number) => (
-                                          <div key={oIdx} className="flex items-start gap-3 italic" style={{ fontSize: `${f.option}pt` }}>
-                                            <div className="rounded-full border-2 border-black flex items-center justify-center font-bold shrink-0 mt-1" style={{ width: `${f.option * 1.5}px`, height: `${f.option * 1.5}px`, fontSize: `${f.option * 0.7}pt` }}>
-                                              {String.fromCharCode(65 + oIdx)}
-                                            </div>
-                                            <span className="break-words">{opt}</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    ) : (
-                                      <div className="ml-10 space-y-4 pr-6">
-                                        <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
-                                        {(sec.type === 'essay' || sec.type === 'math_steps') && (
-                                          <>
-                                            <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
-                                            <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
-                                          </>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
+                      {item.options ? (
+                        <div className="grid grid-cols-2 gap-x-12 gap-y-3 ml-10 text-slate-800">
+                          {item.options.map((opt: string, oIdx: number) => (
+                            <div key={oIdx} className="flex items-start gap-4 italic" style={{ fontSize: `${f.option}pt` }}>
+                              <div className="rounded-full border-2 border-black flex items-center justify-center font-bold shrink-0 mt-1" style={{ width: `${f.option * 1.6}px`, height: `${f.option * 1.6}px`, fontSize: `${f.option * 0.7}pt` }}>
+                                {String.fromCharCode(65 + oIdx)}
                               </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="space-y-8">
-                          {contentData.items.map((item: any, idx: number) => (
-                            <div key={idx} className="break-inside-avoid mb-6">
-                              <div className="flex gap-4 mb-4" style={{ fontSize: `${f.question}pt` }}>
-                                <span className="font-bold shrink-0">{idx + 1}.</span>
-                                <div className="font-bold leading-relaxed whitespace-pre-wrap break-words w-full">{item.question}</div>
-                              </div>
-                              {item.options ? (
-                                <div className="grid grid-cols-2 gap-x-10 gap-y-4 ml-10">
-                                  {item.options.map((opt: string, oIdx: number) => (
-                                    <div key={oIdx} className="flex items-start gap-3 italic" style={{ fontSize: `${f.option}pt` }}>
-                                      <div className="rounded-full border-2 border-black flex items-center justify-center font-bold shrink-0 mt-1" style={{ width: `${f.option * 1.5}px`, height: `${f.option * 1.5}px`, fontSize: `${f.option * 0.7}pt` }}>
-                                        {String.fromCharCode(65 + oIdx)}
-                                      </div>
-                                      <span className="break-words">{opt}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className="ml-10 space-y-4 pr-6">
-                                  <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
-                                  {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
-                                    <>
-                                      <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
-                                      <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
-                                    </>
-                                  )}
-                                </div>
-                              )}
+                              <span className="leading-tight">{opt}</span>
                             </div>
                           ))}
                         </div>
+                      ) : (
+                        <div className="ml-10 space-y-4 pr-6">
+                          <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                          {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
+                            <>
+                              <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                              <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                            </>
+                          )}
+                        </div>
                       )}
                     </div>
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
+                  );
+                })}
+              </div>
+            </div>
 
-          <tfoot className="table-footer-group">
-            <tr>
-              <td className="p-0 border-none">
-                {/* Repeating footer */}
-                <div className="h-[20mm] w-full bg-white flex flex-col justify-center px-[15mm]">
-                  <div className="border-t-2 border-black pt-3 flex justify-between items-center text-[11px] font-bold">
-                    <div className="flex flex-wrap items-center gap-x-6 uppercase">
-                      <span>วิชา: {exercise.course}</span>
-                      <span>ผู้สอน: คร.{user.name} {user.surname}</span>
-                      <span>{user.position || user.school || 'ครูผู้สอน'}</span>
-                    </div>
-                    <span className="text-[9px] text-slate-400 italic">EduGen AI System</span>
-                  </div>
+            {/* Page Footer (Every page) */}
+            <div className="h-[20mm] w-full flex flex-col justify-center px-[15mm]">
+              <div className="border-t-2 border-black pt-3 flex justify-between items-center text-[11px] font-bold">
+                <div className="flex flex-wrap items-center gap-x-6 uppercase">
+                  <span>วิชา: {exercise.course}</span>
+                  <span>ผู้สอน: คร.{user.name} {user.surname}</span>
+                  <span>{user.position || user.school || 'ครูผู้สอน'}</span>
                 </div>
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+                <span className="text-[9px] text-slate-400 italic">EduGen AI System</span>
+              </div>
+            </div>
+          </div>
+        ))}
 
         <style>{`
           @media screen {
-            .print-doc-container {
-              width: 210mm;
+            .a4-sheet {
               margin: 0 auto;
-              background-color: white;
-              box-shadow: 0 0 50px -12px rgb(0 0 0 / 0.15);
-              /* Simulate physical gap between sheets */
-              background-image: linear-gradient(
-                to bottom,
-                white 0mm,
-                white 296mm,
-                #f1f5f9 296mm,
-                #f1f5f9 308mm,
-                #cbd5e1 308mm,
-                #cbd5e1 309mm,
-                white 309mm
-              );
-              background-size: 100% 309mm;
-              position: relative;
-            }
-            /* Visual page badges */
-            .print-doc-container::before {
-              content: "แผ่นที่ 1";
-              position: absolute;
-              left: -80px;
-              top: 20px;
-              background: #6366f1;
-              color: white;
-              padding: 4px 12px;
-              border-radius: 8px;
-              font-size: 12px;
-              font-weight: bold;
-            }
-            .print-doc-container::after {
-              content: "แผ่นที่ 2";
-              position: absolute;
-              left: -80px;
-              top: calc(309mm + 20px);
-              background: #6366f1;
-              color: white;
-              padding: 4px 12px;
-              border-radius: 8px;
-              font-size: 12px;
-              font-weight: bold;
             }
           }
           @media print {
@@ -288,26 +201,18 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
               margin: 0 !important;
               padding: 0 !important;
               background: white !important;
-              counter-reset: page;
             }
-            #root, main { overflow: visible !important; height: auto !important; }
             .no-print { display: none !important; }
-            .print-doc-container {
+            .a4-sheet {
               width: 210mm !important;
-              height: auto !important;
+              height: 297mm !important;
               margin: 0 !important;
               padding: 0 !important;
               box-shadow: none !important;
-              display: block !important;
-              background-image: none !important;
+              page-break-after: always !important;
+              break-after: page !important;
             }
-            .table-header-group { display: table-header-group !important; }
-            .table-footer-group { display: table-footer-group !important; }
-            .page-counter-indicator::after { content: "หน้า " counter(page); }
-            .break-inside-avoid {
-              page-break-inside: avoid !important;
-              break-inside: avoid !important;
-            }
+            #printable-area { gap: 0 !important; }
           }
         `}</style>
       </div>
@@ -350,23 +255,42 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
               <Settings size={24} className="text-indigo-500" />
             </div>
-            <h3 className="font-bold text-slate-900 mb-2">จูนขนาดอักษร</h3>
+            <h3 className="font-bold text-slate-900 mb-2">จูนรูปเล่มเอกสาร</h3>
             <p className="text-[11px] text-slate-400 mb-8 leading-relaxed">
-              คุณครูสามารถปรับขนาดอักษรเพื่อจัดให้เนื้อหาพอดีกับหน้ากระดาษ A4 (เส้นสีเทาเข้มคือจุดสิ้นสุดกระดาษแต่ละหน้าครับ)
+              คุณครูสามารถปรับจำนวนข้อต่อแผ่นและขนาดอักษร เพื่อให้แบบฝึกหัดออกมาสวยงามที่สุดครับ
             </p>
-            <div className="space-y-6">
-              <FontSizeInput label="ส่วนหัวข้อ" value={fontSettings.title} onChange={(v) => setFontSettings({...fontSettings, title: v})} />
-              <FontSizeInput label="มาตรฐาน/ตัวชี้วัด" value={fontSettings.indicators} onChange={(v) => setFontSettings({...fontSettings, indicators: v})} />
-              <FontSizeInput label="คำชี้แจง" value={fontSettings.description} onChange={(v) => setFontSettings({...fontSettings, description: v})} />
-              <FontSizeInput label="โจทย์คำถาม" value={fontSettings.question} onChange={(v) => setFontSettings({...fontSettings, question: v})} />
-              <FontSizeInput label="ตัวเลือก" value={fontSettings.option} onChange={(v) => setFontSettings({...fontSettings, option: v})} />
+            
+            <div className="space-y-8">
+              {/* Pagination Control */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">จำนวนข้อต่อแผ่น</label>
+                  <span className="text-[10px] font-mono font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">{itemsPerPage} ข้อ</span>
+                </div>
+                <div className="flex items-center gap-3 bg-slate-50 p-1 rounded-xl border border-slate-100">
+                  <button onClick={() => setItemsPerPage(Math.max(1, itemsPerPage - 1))} className="w-8 h-8 rounded-lg bg-white shadow-sm border border-slate-200 font-bold active:scale-95 text-slate-600">-</button>
+                  <input 
+                    type="range" min="1" max="15" value={itemsPerPage} onChange={(e) => setItemsPerPage(parseInt(e.target.value))}
+                    className="flex-1 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                  />
+                  <button onClick={() => setItemsPerPage(Math.min(20, itemsPerPage + 1))} className="w-8 h-8 rounded-lg bg-white shadow-sm border border-slate-200 font-bold active:scale-95 text-slate-600">+</button>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-6 space-y-6">
+                <FontSizeInput label="ส่วนหัวข้อ" value={fontSettings.title} onChange={(v) => setFontSettings({...fontSettings, title: v})} />
+                <FontSizeInput label="มาตรฐาน/ตัวชี้วัด" value={fontSettings.indicators} onChange={(v) => setFontSettings({...fontSettings, indicators: v})} />
+                <FontSizeInput label="คำชี้แจง" value={fontSettings.description} onChange={(v) => setFontSettings({...fontSettings, description: v})} />
+                <FontSizeInput label="โจทย์คำถาม" value={fontSettings.question} onChange={(v) => setFontSettings({...fontSettings, question: v})} />
+                <FontSizeInput label="ตัวเลือก" value={fontSettings.option} onChange={(v) => setFontSettings({...fontSettings, option: v})} />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Right Content: Scrollable Preview */}
-        <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 lg:h-full overflow-y-auto p-8 no-print print:p-0 print:bg-transparent print:border-none print:overflow-visible">
-          <div className="min-w-fit flex justify-center lg:justify-start">
+        <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 lg:h-full overflow-y-auto p-12 no-print print:p-0 print:bg-transparent print:border-none print:overflow-visible">
+          <div className="min-w-fit flex justify-center">
             {printArea()}
           </div>
         </div>
@@ -382,9 +306,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {(contentData.sections 
-            ? contentData.sections.flatMap((s: any) => s.items) 
-            : contentData.items).map((item: any, idx: number) => (
+          {allItems.map((item: any, idx: number) => (
             <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center gap-4">
               <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
                 {idx + 1}
