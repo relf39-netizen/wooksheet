@@ -15,6 +15,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
   });
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [zoom, setZoom] = useState(0.7);
+  const [isPrintPreview, setIsPrintPreview] = useState(false);
 
   useEffect(() => {
     const apiBase = '/server.cjs';
@@ -81,8 +82,152 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
   }
 
   return (
-    <div className="space-y-8 pb-20 max-w-[1400px] mx-auto px-4 relative">
-      {/* 1. UI Controls - Hidden on Print */}
+    <div className={`space-y-8 pb-20 max-w-[1400px] mx-auto px-4 relative ${isPrintPreview ? 'print-mode-active' : ''}`}>
+      {/* 
+        MODE 1: Dedicated Print Preview (The "Room" the user requested)
+      */}
+      {isPrintPreview && (
+        <div className="fixed inset-0 z-[9999] bg-slate-900 overflow-y-auto no-print">
+          <div className="sticky top-0 z-[100] bg-slate-900/95 backdrop-blur-md border-b border-white/10 p-4 flex items-center justify-between shadow-2xl">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsPrintPreview(false)}
+                className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all"
+              >
+                <ChevronLeft size={18} />
+                <span>กลับไปแก้ไข</span>
+              </button>
+              <div className="h-6 w-px bg-white/10 mx-2"></div>
+              <div className="text-white/60 text-sm font-medium">
+                โหมดเตรียมพิมพ์ (ตรวจสอบระยะขอบและสัดส่วนก่อนพิมพ์จริง)
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => window.print()}
+              className="bg-indigo-500 hover:bg-indigo-400 text-white px-10 py-3 rounded-xl font-black uppercase tracking-widest flex items-center gap-3 shadow-xl transition-all active:scale-95"
+            >
+              <Printer size={20} />
+              <span>สั่งพิมพ์จากเครื่องนี้</span>
+            </button>
+          </div>
+
+          <div className="p-12 pb-32 flex justify-center">
+            {/* Forced 1:1 Scale for Previewing */}
+            <div className="flex flex-col items-center gap-10">
+              <div className="bg-white/5 border border-white/10 p-2 rounded-lg mb-4 text-xs text-indigo-300 font-mono italic">
+                -- หน้าเอกสารขนาดจริง A4 (210mm x 297mm) --
+              </div>
+              
+              <div id="final-preview-container" className="print:block">
+                {chunks.map((chunk, pageIdx) => (
+                  <div 
+                    key={pageIdx}
+                    className="a4-sheet bg-white text-black font-sarabun relative flex flex-col overflow-hidden text-left mb-10 last:mb-0 shadow-2xl"
+                    style={{ width: '210mm', height: '297mm', minHeight: '297mm', boxSizing: 'border-box' }}
+                  >
+                    {/* Header Section */}
+                    <div className="h-[30mm] w-full flex flex-col justify-end px-[20mm]">
+                      <div className="flex justify-between items-end pb-1 pr-1 font-bold">
+                        <div className="text-[14px] truncate uppercase pr-4">แบบฝึกหัด: {exercise.title}</div>
+                        <div className="text-[11px] shrink-0 text-slate-500">หน้า {pageIdx + 1} / {chunks.length}</div>
+                      </div>
+                      <div className="border-t-[3px] border-black mb-4"></div>
+                    </div>
+
+                    {/* Content Body */}
+                    <div className="flex-1 px-[20mm] py-4 flex flex-col overflow-hidden">
+                      {pageIdx === 0 && (
+                        <>
+                          <div className="border-b-2 border-black pb-4 mb-8 text-[13px] font-bold flex items-center gap-6">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="shrink-0">ชื่อ-นามสกุล:</span>
+                              <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2"></div>
+                            </div>
+                            <div className="flex items-center gap-2 w-[80px] shrink-0">
+                              <span className="shrink-0">เลขที่:</span>
+                              <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2 text-center"></div>
+                            </div>
+                            <div className="flex items-center gap-2 w-[110px] shrink-0">
+                              <span className="shrink-0">ชั้น:</span>
+                              <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
+                              <span className="shrink-0">/</span>
+                              <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
+                            </div>
+                          </div>
+                          <div className="mb-6 text-center">
+                            <h1 className="font-extrabold mb-1" style={{ fontSize: `${fontSettings.title}pt` }}>{exercise.title}</h1>
+                            <p className="text-slate-600 font-bold italic mb-4" style={{ fontSize: `${fontSettings.indicators}pt` }}>
+                              มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
+                            </p>
+                            <div className="bg-slate-50 p-4 border-l-8 border-black italic text-left leading-relaxed shadow-sm" style={{ fontSize: `${fontSettings.description}pt` }}>
+                              <span className="font-extrabold not-italic mr-2 underline">คำชี้แจง:</span>
+                              {contentData.description}
+                            </div>
+                            <div className="mt-6 border-t-2 border-black w-full opacity-30"></div>
+                          </div>
+                        </>
+                      )}
+
+                      <div className="space-y-6 flex-1">
+                        {chunk.map((item: any, idx: number) => {
+                          const globalIdx = (pageIdx * itemsPerPage) + idx + 1;
+                          return (
+                            <div key={idx} className="break-inside-avoid">
+                              <div className="flex gap-4 mb-4" style={{ fontSize: `${fontSettings.question}pt` }}>
+                                <span className="font-bold shrink-0">{globalIdx}.</span>
+                                <div className="font-bold leading-relaxed">{item.question}</div>
+                              </div>
+                              {item.options ? (
+                                <div className="grid grid-cols-2 gap-x-12 gap-y-3 ml-10 text-slate-800">
+                                  {item.options.map((opt: string, oIdx: number) => (
+                                    <div key={oIdx} className="flex items-start gap-3" style={{ fontSize: `${fontSettings.option}pt` }}>
+                                      <div className="rounded-full border-2 border-black flex items-center justify-center font-bold shrink-0 mt-1" style={{ width: '22px', height: '22px', fontSize: '10pt' }}>
+                                        {String.fromCharCode(65 + oIdx)}
+                                      </div>
+                                      <span className="leading-tight">{opt}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="ml-10 space-y-4 pr-6">
+                                  <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                                  {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
+                                    <>
+                                      <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                                      <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Footer Section */}
+                    <div className="h-[25mm] w-full flex flex-col justify-center px-[20mm] pb-4">
+                      <div className="border-t-2 border-black pt-3 flex justify-between items-center text-[10px] font-bold">
+                        <div className="flex flex-wrap items-center gap-x-6">
+                          <span className="uppercase">รายวิชา: {exercise.course}</span>
+                          <span>ผู้สอน: คร.{user.name} {user.surname}</span>
+                          <span className="italic">{user.school || user.position || 'โรงเรียนคุณภาพ'}</span>
+                        </div>
+                        <span className="text-[8px] text-slate-400 opacity-50">EduGen AI Tool</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 
+        MODE 2: Edit Layout Mode (Standard View)
+      */}
       <div className="flex items-center justify-between bg-white p-6 rounded-3xl border border-slate-200 shadow-sm no-print sticky top-4 z-[100]">
         <button onClick={() => onNavigate('history')} className="flex items-center gap-2 text-slate-500 font-bold hover:text-indigo-600 transition-colors">
           <ChevronLeft size={20} />
@@ -102,29 +247,32 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             <span>บันทึกตั้งค่า</span>
           </button>
           
-          <button onClick={() => window.print()} className="bg-indigo-600 text-white px-10 py-3 rounded-xl font-black uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-700 shadow-lg shadow-indigo-100 active:scale-95 transition-all">
+          <button 
+            onClick={() => setIsPrintPreview(true)}
+            className="bg-indigo-600 text-white px-10 py-3 rounded-xl font-black uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-700 shadow-lg shadow-indigo-100 active:scale-95 transition-all"
+          >
             <Printer size={18} />
-            <span>สั่งพิมพ์ (A4)</span>
+            <span>เตรียมพิมพ์ (A4)</span>
           </button>
         </div>
       </div>
 
       {/* Main Working Area */}
-      <div className="flex flex-col lg:flex-row gap-8 items-stretch h-[850px] print:h-auto print:block">
+      <div className="flex flex-col lg:flex-row gap-8 items-stretch h-[850px] no-print">
         
         {/* Left Sidebar: Controls (Hidden on Print) */}
-        <div className="w-full lg:w-[320px] no-print space-y-6 flex-shrink-0">
+        <div className="w-full lg:w-[320px] no-print space-y-6 flex-shrink-0 text-left">
           <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm h-full overflow-y-auto no-scrollbar">
             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
               <Settings size={24} className="text-indigo-500" />
             </div>
-            <h3 className="font-bold text-slate-900 mb-2">จูนรูปเล่มเอกสาร</h3>
-            <p className="text-[11px] text-slate-400 mb-8 leading-relaxed">ปรับแต่งขนาดตัวอักษรและจำนวนข้อต่อแผ่นเพื่อให้ได้รูปแบบที่ต้องการครับ</p>
+            <h3 className="font-bold text-slate-900 mb-2 text-left">จูนรูปเล่มเอกสาร</h3>
+            <p className="text-[11px] text-slate-400 mb-8 leading-relaxed text-left">ปรับแต่งขนาดตัวอักษรและจำนวนข้อต่อแผ่นเพื่อให้ได้รูปแบบที่ต้องการครับ</p>
             
-            <div className="space-y-8 text-left">
+            <div className="space-y-8">
               <div className="space-y-4">
                 <div className="flex justify-between items-center px-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">จำนวนข้อต่อแผ่น</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">จำนวนข้อต่อแผ่น</label>
                   <span className="text-[10px] font-mono font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">{itemsPerPage} ข้อ</span>
                 </div>
                 <div className="flex items-center gap-3 bg-slate-50 p-1 rounded-xl border border-slate-100">
@@ -145,119 +293,111 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           </div>
         </div>
 
-        {/* Right Preview Zone (Primary Scrollbar on screen, Normal on print) */}
-        <div id="print-zone" className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 print:p-0 print:border-none print:bg-white print:overflow-visible print:block">
-          <div 
-            id="printable-area" 
-            className="flex flex-col items-center gap-10 print:gap-0 print:block"
-            style={{ 
-              transform: `scale(${zoom})`, 
-              transformOrigin: 'top center',
-              // Disable scale and origin during print via media query or inline check (CSS is safer)
-            }}
-          >
-            {chunks.map((chunk, pageIdx) => (
-              <div 
-                key={pageIdx}
-                className="a4-sheet bg-white text-black font-sarabun relative flex flex-col shadow-2xl print:shadow-none overflow-hidden text-left"
-                style={{ width: '210mm', height: '297mm', minHeight: '297mm', boxSizing: 'border-box' }}
-              >
-                {/* Header Section */}
-                <div className="h-[30mm] w-full flex flex-col justify-end px-[20mm]">
-                  <div className="flex justify-between items-end pb-1 pr-1 font-bold">
-                    <div className="text-[14px] truncate uppercase pr-4">แบบฝึกหัด: {exercise.title}</div>
-                    <div className="text-[11px] shrink-0 text-slate-500">หน้า {pageIdx + 1} / {chunks.length}</div>
-                  </div>
-                  <div className="border-t-[3px] border-black mb-4"></div>
-                </div>
-
-                {/* Content Body */}
-                <div className="flex-1 px-[20mm] py-4 flex flex-col overflow-hidden">
-                  {pageIdx === 0 && (
-                    <>
-                      {/* Name Box */}
-                      <div className="border-b-2 border-black pb-4 mb-8 text-[13px] font-bold flex items-center gap-6">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="shrink-0">ชื่อ-นามสกุล:</span>
-                          <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2"></div>
-                        </div>
-                        <div className="flex items-center gap-2 w-[80px] shrink-0">
-                          <span className="shrink-0">เลขที่:</span>
-                          <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2 text-center"></div>
-                        </div>
-                        <div className="flex items-center gap-2 w-[110px] shrink-0">
-                          <span className="shrink-0">ชั้น:</span>
-                          <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
-                          <span className="shrink-0">/</span>
-                          <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
-                        </div>
-                      </div>
-                      {/* Page 1 Titles */}
-                      <div className="mb-6 text-center">
-                        <h1 className="font-extrabold mb-1" style={{ fontSize: `${fontSettings.title}pt` }}>{exercise.title}</h1>
-                        <p className="text-slate-600 font-bold italic mb-4" style={{ fontSize: `${fontSettings.indicators}pt` }}>
-                          มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
-                        </p>
-                        <div className="bg-slate-50 p-4 border-l-8 border-black italic text-left leading-relaxed shadow-sm" style={{ fontSize: `${fontSettings.description}pt` }}>
-                          <span className="font-extrabold not-italic mr-2 underline">คำชี้แจง:</span>
-                          {contentData.description}
-                        </div>
-                        <div className="mt-6 border-t-2 border-black w-full opacity-30"></div>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Question List */}
-                  <div className="space-y-6 flex-1">
-                    {chunk.map((item: any, idx: number) => {
-                      const globalIdx = (pageIdx * itemsPerPage) + idx + 1;
-                      return (
-                        <div key={idx} className="break-inside-avoid">
-                          <div className="flex gap-4 mb-4" style={{ fontSize: `${fontSettings.question}pt` }}>
-                            <span className="font-bold shrink-0">{globalIdx}.</span>
-                            <div className="font-bold leading-relaxed">{item.question}</div>
-                          </div>
-                          {item.options ? (
-                            <div className="grid grid-cols-2 gap-x-12 gap-y-3 ml-10 text-slate-800">
-                              {item.options.map((opt: string, oIdx: number) => (
-                                <div key={oIdx} className="flex items-start gap-3" style={{ fontSize: `${fontSettings.option}pt` }}>
-                                  <div className="rounded-full border-2 border-black flex items-center justify-center font-bold shrink-0 mt-1" style={{ width: '22px', height: '22px', fontSize: '10pt' }}>
-                                    {String.fromCharCode(65 + oIdx)}
-                                  </div>
-                                  <span className="leading-tight">{opt}</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="ml-10 space-y-4 pr-6">
-                              <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
-                              {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
-                                <>
-                                  <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
-                                  <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
-                                </>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Footer Section */}
-                <div className="h-[25mm] w-full flex flex-col justify-center px-[20mm] pb-4">
-                  <div className="border-t-2 border-black pt-3 flex justify-between items-center text-[10px] font-bold">
-                    <div className="flex flex-wrap items-center gap-x-6">
-                      <span className="uppercase">รายวิชา: {exercise.course}</span>
-                      <span>ผู้สอน: คร.{user.name} {user.surname}</span>
-                      <span className="italic">{user.school || user.position || 'โรงเรียนคุณภาพ'}</span>
+        {/* Right Preview Zone (Screen Only) */}
+        <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 no-print">
+          <div className="min-w-fit flex justify-center">
+            <div 
+              id="printable-area-screen" 
+              className="flex flex-col items-center gap-10"
+              style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
+            >
+              {chunks.map((chunk, pageIdx) => (
+                <div 
+                  key={pageIdx}
+                  className="a4-sheet bg-white text-black font-sarabun relative flex flex-col shadow-2xl overflow-hidden text-left"
+                  style={{ width: '210mm', height: '297mm', minHeight: '297mm', boxSizing: 'border-box' }}
+                >
+                  <div className="h-[30mm] w-full flex flex-col justify-end px-[20mm]">
+                    <div className="flex justify-between items-end pb-1 pr-1 font-bold">
+                      <div className="text-[14px] truncate uppercase pr-4">แบบฝึกหัด: {exercise.title}</div>
+                      <div className="text-[11px] shrink-0 text-slate-500">หน้า {pageIdx + 1} / {chunks.length}</div>
                     </div>
-                    <span className="text-[8px] text-slate-400 opacity-50">EduGen AI Tool</span>
+                    <div className="border-t-[3px] border-black mb-4"></div>
+                  </div>
+
+                  <div className="flex-1 px-[20mm] py-4 flex flex-col overflow-hidden">
+                    {pageIdx === 0 && (
+                      <>
+                        <div className="border-b-2 border-black pb-4 mb-8 text-[13px] font-bold flex items-center gap-6">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="shrink-0">ชื่อ-นามสกุล:</span>
+                            <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2"></div>
+                          </div>
+                          <div className="flex items-center gap-2 w-[80px] shrink-0">
+                            <span className="shrink-0">เลขที่:</span>
+                            <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2 text-center"></div>
+                          </div>
+                          <div className="flex items-center gap-2 w-[110px] shrink-0">
+                            <span className="shrink-0">ชั้น:</span>
+                            <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
+                            <span className="shrink-0">/</span>
+                            <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
+                          </div>
+                        </div>
+                        <div className="mb-6 text-center">
+                          <h1 className="font-extrabold mb-1" style={{ fontSize: `${fontSettings.title}pt` }}>{exercise.title}</h1>
+                          <p className="text-slate-600 font-bold italic mb-4" style={{ fontSize: `${fontSettings.indicators}pt` }}>
+                            มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
+                          </p>
+                          <div className="bg-slate-50 p-4 border-l-8 border-black italic text-left leading-relaxed shadow-sm" style={{ fontSize: `${fontSettings.description}pt` }}>
+                            <span className="font-extrabold not-italic mr-2 underline">คำชี้แจง:</span>
+                            {contentData.description}
+                          </div>
+                          <div className="mt-6 border-t-2 border-black w-full opacity-30"></div>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="space-y-6 flex-1">
+                      {chunk.map((item: any, idx: number) => {
+                        const globalIdx = (pageIdx * itemsPerPage) + idx + 1;
+                        return (
+                          <div key={idx} className="break-inside-avoid">
+                            <div className="flex gap-4 mb-4" style={{ fontSize: `${fontSettings.question}pt` }}>
+                              <span className="font-bold shrink-0">{globalIdx}.</span>
+                              <div className="font-bold leading-relaxed">{item.question}</div>
+                            </div>
+                            {item.options ? (
+                              <div className="grid grid-cols-2 gap-x-12 gap-y-3 ml-10 text-slate-800 text-left">
+                                {item.options.map((opt: string, oIdx: number) => (
+                                  <div key={oIdx} className="flex items-start gap-3" style={{ fontSize: `${fontSettings.option}pt` }}>
+                                    <div className="rounded-full border-2 border-black flex items-center justify-center font-bold shrink-0 mt-1" style={{ width: '22px', height: '22px', fontSize: '10pt' }}>
+                                      {String.fromCharCode(65 + oIdx)}
+                                    </div>
+                                    <span className="leading-tight">{opt}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="ml-10 space-y-4 pr-6">
+                                <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                                {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
+                                  <>
+                                    <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                                    <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="h-[25mm] w-full flex flex-col justify-center px-[20mm] pb-4">
+                    <div className="border-t-2 border-black pt-3 flex justify-between items-center text-[10px] font-bold">
+                      <div className="flex flex-wrap items-center gap-x-6">
+                        <span className="uppercase">รายวิชา: {exercise.course}</span>
+                        <span>ผู้สอน: คร.{user.name} {user.surname}</span>
+                        <span className="italic">{user.school || user.position || 'โรงเรียนคุณภาพ'}</span>
+                      </div>
+                      <span className="text-[8px] text-slate-400 opacity-50">EduGen AI Tool</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -271,7 +411,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             <p className="text-xs text-slate-400 font-medium">เฉพาะสำหรับคุณครูใช้ตรวจงาน</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
           {allItems.map((item: any, idx: number) => (
             <div key={idx} className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex items-center gap-4 hover:border-indigo-200 hover:bg-white transition-all group">
               <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-110 transition-transform">{idx + 1}</div>
@@ -286,55 +426,33 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap');
-        
         .font-sarabun { font-family: 'Sarabun', sans-serif; }
         
         @media print {
-          /* RESET */
           @page { size: A4; margin: 0 !important; }
-          
           html, body {
             margin: 0 !important;
             padding: 0 !important;
             width: 210mm !important;
-            background: white !important;
-            overflow: visible !important;
-          }
-
-          /* HIDE EVERYTHING with absolute certainty */
-          .no-print, header, nav, footer, aside, .sticky {
-            display: none !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
-            height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            pointer-events: none !important;
-          }
-
-          /* FORCE CONTAINER VISIBILITY */
-          #print-zone, #print-zone > div {
-            display: block !important;
-            width: 210mm !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: white !important;
-            overflow: visible !important;
             height: auto !important;
+            background: white !important;
+            overflow: visible !important;
+          }
+          /* Completely wipe out everything on the page except the preview container */
+          body > #root > div:not(.print-mode-active),
+          .print-view-wrapper > *:not(#final-preview-container) {
+            display: none !important;
+          }
+          #final-preview-container {
+            display: block !important;
             position: absolute !important;
             top: 0 !important;
             left: 0 !important;
+            width: 210mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
             z-index: 9999 !important;
           }
-
-          /* DISABLE SCREEN UI STYLES */
-          #printable-area {
-            transform: none !important;
-            box-shadow: none !important;
-            display: block !important;
-            margin: 0 !important;
-          }
-
           .a4-sheet {
             display: flex !important;
             width: 210mm !important;
@@ -347,8 +465,6 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             position: relative !important;
             background: white !important;
           }
-
-          /* Ensure images and colors show up */
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
