@@ -15,7 +15,6 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
   });
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [zoom, setZoom] = useState(0.7);
-  const [isPrintPreview, setIsPrintPreview] = useState(false);
 
   useEffect(() => {
     const apiBase = '/server.cjs';
@@ -71,12 +70,12 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const html = document.getElementById('print-content')?.innerHTML;
+    const html = document.getElementById('unified-print-area')?.innerHTML;
 
     printWindow.document.write(`
       <html>
         <head>
-          <title>Print - ${exercise.title}</title>
+          <title>EduGen AI - ${exercise.title}</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap');
             @page { size: A4; margin: 0; }
@@ -113,7 +112,6 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             .footer-left { float: left; font-size: 12pt; font-weight: 800; }
             .footer-right { float: right; font-size: 10pt; opacity: 0.6; }
 
-            .no-print { display: none !important; }
             * { box-sizing: border-box; }
           </style>
         </head>
@@ -129,7 +127,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     printWindow.focus();
     setTimeout(() => {
       printWindow.print();
-    }, 800);
+    }, 1000);
   };
 
   if (loading) return <div className="text-center py-20">กำลังจัดเตรียมไฟล์...</div>;
@@ -140,214 +138,11 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     ? contentData.sections.flatMap((s: any) => s.items) 
     : contentData.items;
 
-  // Split items into chunks for each page
   const chunks = [];
   for (let i = 0; i < allItems.length; i += itemsPerPage) {
     chunks.push(allItems.slice(i, i + itemsPerPage));
   }
 
-  // --- RENDER LOGIC ---
-
-  // MODE A: Dedicated Print Preview Mode (The "Room" the user requested)
-  // We render this as the ONLY content to ensure browsers can print it perfectly.
-  // ===== PRINT PREVIEW MODE (FIXED VERSION) =====
-if (isPrintPreview) {
-  return (
-    <div className="print-root font-sarabun text-left">
-
-      {/* Control Bar */}
-      <div className="no-print fixed top-0 left-0 right-0 bg-slate-900 border-b border-white/10 text-white p-6 flex justify-between items-center z-[200] shadow-2xl backdrop-blur-md">
-        <button 
-          onClick={() => setIsPrintPreview(false)}
-          className="bg-white/10 hover:bg-white/20 px-8 py-3 rounded-2xl font-bold transition-all flex items-center gap-2"
-        >
-          <ChevronLeft size={20} />
-          <span>กลับไปแก้ไข</span>
-        </button>
-        <div className="flex flex-col items-center">
-          <span className="text-[14px] font-black tracking-widest text-indigo-400 uppercase">A4 Print Preview Mode</span>
-          <span className="text-[10px] text-slate-500 italic">ขนาดจริง 210mm x 297mm (Block Logic)</span>
-        </div>
-        <button 
-          onClick={handlePrintNewWindow}
-          className="bg-indigo-600 hover:bg-indigo-500 px-12 py-4 rounded-2xl font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-xl shadow-indigo-900/40 active:scale-95"
-        >
-          <Printer size={22} />
-          <span>สั่งพิมพ์เดี๋ยวนี้</span>
-        </button>
-      </div>
-
-      {/* เอกสาร */}
-      <div id="print-content" className="pt-24 pb-32 overflow-y-auto no-scrollbar">
-        {chunks.map((chunk, pageIdx) => (
-          <div key={pageIdx} className="page">
-
-            {/* HEADER BLOCK: 30mm */}
-            <div className="header">
-              <div className="header-row">
-                <div className="header-left">แบบฝึกหัด: {exercise.title}</div>
-                <div className="header-right">หน้า {pageIdx + 1}/{chunks.length}</div>
-                <div className="clear"></div>
-              </div>
-            </div>
-
-            {/* CONTENT BLOCK: 242mm */}
-            <div className="content">
-              {pageIdx === 0 && (
-                <>
-                  <div className="student">
-                    <div style={{ float: 'left', width: '60%' }}>ชื่อ-นามสกุล: ..................................................................................</div>
-                    <div style={{ float: 'left', width: '15%' }}>เลขที่: .......</div>
-                    <div style={{ float: 'right', width: '25%', textAlign: 'right' }}>ชั้น: ......... / .........</div>
-                    <div className="clear"></div>
-                  </div>
-
-                  <div className="title-area">
-                    <h1 style={{ fontSize: `${fontSettings.title + 2}pt`, fontWeight: '800', marginBottom: '4px' }}>
-                      {exercise.title}
-                    </h1>
-                    <p style={{ fontSize: `${fontSettings.indicators + 1.5}pt`, fontWeight: 'bold', color: '#333' }}>
-                      มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
-                    </p>
-                  </div>
-
-                  <div className="desc-box" style={{ fontSize: `${fontSettings.description + 1.5}pt` }}>
-                    <b style={{ textDecoration: 'underline', marginRight: '10px' }}>คำชี้แจง:</b> {contentData.description}
-                  </div>
-                </>
-              )}
-
-              {/* QUESTIONS LIST */}
-              <div className="questions">
-                {chunk.map((item: any, idx: number) => {
-                  const num = pageIdx * itemsPerPage + idx + 1;
-                  return (
-                    <div key={idx} className="q-block">
-                      <div
-                        className="q-title"
-                        style={{ fontSize: `${fontSettings.question + 1.5}pt` }}
-                      >
-                        <span style={{ marginRight: '12pt' }}>{num}.</span>
-                        {item.question}
-                      </div>
-
-                      {item.options ? (
-                        <div className="options-container">
-                          {item.options.map((opt: string, i: number) => (
-                            <div
-                              key={i}
-                              className="option-item"
-                              style={{ fontSize: `${fontSettings.option + 1.5}pt` }}
-                            >
-                              <div style={{ 
-                                width: '26px', 
-                                height: '26px', 
-                                border: '2.5px solid black', 
-                                borderRadius: '50%', 
-                                display: 'inline-block', 
-                                textAlign: 'center', 
-                                lineHeight: '21px', 
-                                fontWeight: '800', 
-                                fontSize: '11pt',
-                                marginRight: '10pt',
-                                verticalAlign: 'middle'
-                              }}>
-                                {String.fromCharCode(65 + i)}
-                              </div>
-                              <span style={{ verticalAlign: 'middle' }}>{opt}</span>
-                            </div>
-                          ))}
-                          <div className="clear"></div>
-                        </div>
-                      ) : (
-                        <div className="options-container">
-                          <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
-                          {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
-                            <>
-                              <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
-                              <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* FOOTER BLOCK: 25mm */}
-            <div className="footer">
-              <div className="footer-left">รายวิชา: {exercise.course} | ผู้สอน: คร.{user.name} {user.surname}</div>
-              <div className="footer-right">EduGen AI Professional Tool</div>
-              <div className="clear"></div>
-            </div>
-
-          </div>
-        ))}
-      </div>
-
-      {/* CSS PRODUCTION - NO FLEXBOX IN PAGE STRUCTURE */}
-      <style>{`
-        .print-root {
-          background: #0f172a;
-          min-height: 100vh;
-        }
-
-        #print-content {
-          display: block;
-          margin: 0 auto;
-          width: 210mm;
-        }
-
-        .page {
-          width: 210mm;
-          height: 297mm;
-          background: white;
-          margin: 0 auto 30px auto;
-          display: block;
-          position: relative;
-          box-sizing: border-box;
-          page-break-after: always;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-          overflow: hidden;
-        }
-
-        .header { height: 30mm; width: 100%; border-bottom: 3px solid black; padding: 12mm 20mm 2mm 20mm; display: block; box-sizing: border-box; }
-        .header-row { display: block; width: 100%; }
-        .header-left { float: left; font-weight: 800; font-size: 15pt; }
-        .header-right { float: right; font-weight: 800; font-size: 12pt; color: #666; }
-        .clear { clear: both; }
-
-        .content { height: 242mm; width: 100%; padding: 5mm 20mm; display: block; box-sizing: border-box; overflow: hidden; }
-        .student { border-bottom: 2px solid black; padding-bottom: 4mm; margin-bottom: 8mm; font-size: 15pt; font-weight: 800; display: block; overflow: hidden; }
-        .title-area { text-align: center; margin-bottom: 6mm; display: block; }
-        .desc-box { border-left: 8px solid black; background: #f9f9f9; padding: 12pt; margin-bottom: 10mm; line-height: 1.6; display: block; }
-
-        .q-block { margin-bottom: 10mm; display: block; page-break-inside: avoid; }
-        .q-title { font-weight: 800; line-height: 1.5; display: block; }
-        .options-container { margin-left: 10mm; margin-top: 4mm; display: block; overflow: hidden; }
-        .option-item { width: 48%; float: left; vertical-align: top; margin-bottom: 4mm; line-height: 1.4; }
-
-        .footer { height: 25mm; width: 100%; border-top: 2px solid black; padding: 4mm 20mm; display: block; box-sizing: border-box; position: absolute; bottom: 0; left: 0; }
-        .footer-left { float: left; font-size: 12pt; font-weight: 800; }
-        .footer-right { float: right; font-size: 10pt; opacity: 0.6; }
-
-        @media print {
-          @page { size: A4; margin: 0; }
-          body { margin: 0; padding: 0; background: white; }
-          .no-print { display: none !important; }
-          .print-root { background: white; padding: 0; }
-          #print-content { width: 210mm; margin: 0; padding: 0; }
-          .page { margin: 0; box-shadow: none; border: none; }
-          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-  // MODE B: Standard Editing Mode
   return (
     <div className="space-y-8 pb-20 max-w-[1400px] mx-auto px-4 relative font-sarabun text-left">
       {/* 1. UI Controls - Screen Only */}
@@ -371,7 +166,7 @@ if (isPrintPreview) {
           </button>
           
           <button 
-            onClick={() => setIsPrintPreview(true)}
+            onClick={handlePrintNewWindow}
             className="bg-indigo-600 text-white px-10 py-3 rounded-xl font-black uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-700 shadow-lg shadow-indigo-100 active:scale-95 transition-all"
           >
             <Printer size={18} />
@@ -416,88 +211,81 @@ if (isPrintPreview) {
           </div>
         </div>
 
-        {/* Right Preview Zone (Screen Only) */}
+        {/* Right Preview Zone - Physical Block Logic Area */}
         <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 no-print">
           <div className="min-w-fit flex justify-center">
             <div 
-              id="printable-area-screen" 
+              id="unified-print-area" 
               className="flex flex-col items-center gap-10"
               style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
             >
               {chunks.map((chunk, pageIdx) => (
                 <div 
                   key={pageIdx}
-                  className="a4-sheet bg-white text-black font-sarabun relative flex flex-col shadow-2xl overflow-hidden text-left"
-                  style={{ width: '210mm', height: '297mm', minHeight: '297mm', boxSizing: 'border-box' }}
+                  className="page shadow-2xl"
+                  style={{ width: '210mm', height: '297mm', background: 'white', display: 'block', position: 'relative', overflow: 'hidden', marginBottom: '30px', border: '1px solid #eee' }}
                 >
-                  <div className="h-[30mm] w-full flex flex-col justify-end px-[20mm]">
-                    <div className="flex justify-between items-end pb-1 pr-1 font-bold">
-                      <div className="text-[14px] truncate uppercase pr-4">แบบฝึกหัด: {exercise.title}</div>
-                      <div className="text-[11px] shrink-0 text-slate-500">หน้า {pageIdx + 1} / {chunks.length}</div>
+                  {/* HEADER 30mm */}
+                  <div className="header">
+                    <div className="header-row">
+                      <div className="header-left">แบบฝึกหัด: {exercise.title}</div>
+                      <div className="header-right">หน้า {pageIdx + 1}/{chunks.length}</div>
+                      <div className="clear"></div>
                     </div>
-                    <div className="border-t-[3px] border-black mb-4"></div>
                   </div>
 
-                  <div className="flex-1 px-[20mm] py-4 flex flex-col overflow-hidden">
+                  {/* CONTENT 242mm */}
+                  <div className="content">
                     {pageIdx === 0 && (
                       <>
-                        <div className="border-b-2 border-black pb-4 mb-8 text-[13px] font-bold flex items-center gap-6">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <span className="shrink-0">ชื่อ-นามสกุล:</span>
-                            <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2"></div>
-                          </div>
-                          <div className="flex items-center gap-2 w-[80px] shrink-0">
-                            <span className="shrink-0">เลขที่:</span>
-                            <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2 text-center"></div>
-                          </div>
-                          <div className="flex items-center gap-2 w-[110px] shrink-0">
-                            <span className="shrink-0">ชั้น:</span>
-                            <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
-                            <span className="shrink-0">/</span>
-                            <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
-                          </div>
+                        <div className="student">
+                          <div style={{ float: 'left', width: '60%' }}>ชื่อ-นามสกุล: ..................................................................................</div>
+                          <div style={{ float: 'left', width: '15%' }}>เลขที่: .......</div>
+                          <div style={{ float: 'right', width: '25%', textAlign: 'right' }}>ชั้น: ......... / .........</div>
+                          <div className="clear"></div>
                         </div>
-                        <div className="mb-6 text-center">
-                          <h1 className="font-extrabold mb-1" style={{ fontSize: `${fontSettings.title}pt` }}>{exercise.title}</h1>
-                          <p className="text-slate-600 font-bold italic mb-4" style={{ fontSize: `${fontSettings.indicators}pt` }}>
-                            มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
+
+                        <div className="title-area">
+                          <h1 style={{ fontSize: `${fontSettings.title + 2}pt`, fontWeight: '800', marginBottom: '4px' }}>{exercise.title}</h1>
+                          <p style={{ fontSize: `${fontSettings.indicators + 2}pt`, fontWeight: 'bold', color: '#333' }}>
+                            มฐ./ตัวชี้วัด: {contentData.indicators || exercise.indicators}
                           </p>
-                          <div className="bg-slate-50 p-4 border-l-8 border-black italic text-left leading-relaxed shadow-sm" style={{ fontSize: `${fontSettings.description}pt` }}>
-                            <span className="font-extrabold not-italic mr-2 underline">คำชี้แจง:</span>
-                            {contentData.description}
-                          </div>
-                          <div className="mt-6 border-t-2 border-black w-full opacity-30"></div>
+                        </div>
+
+                        <div className="desc-box" style={{ fontSize: `${fontSettings.description + 1.5}pt` }}>
+                          <b style={{ textDecoration: 'underline', marginRight: '10px' }}>คำชี้แจง:</b> {contentData.description}
                         </div>
                       </>
                     )}
 
-                    <div className="space-y-6 flex-1">
+                    <div className="questions">
                       {chunk.map((item: any, idx: number) => {
                         const globalIdx = (pageIdx * itemsPerPage) + idx + 1;
                         return (
-                          <div key={idx} className="break-inside-avoid">
-                            <div className="flex gap-4 mb-4" style={{ fontSize: `${fontSettings.question}pt` }}>
-                              <span className="font-bold shrink-0">{globalIdx}.</span>
-                              <div className="font-bold leading-relaxed">{item.question}</div>
+                          <div key={idx} className="q-block">
+                            <div className="q-title" style={{ fontSize: `${fontSettings.question + 1.5}pt` }}>
+                              <span style={{ marginRight: '12pt' }}>{globalIdx}.</span>
+                              {item.question}
                             </div>
                             {item.options ? (
-                              <div className="grid grid-cols-2 gap-x-12 gap-y-3 ml-10 text-slate-800 text-left">
+                              <div className="options-container">
                                 {item.options.map((opt: string, oIdx: number) => (
-                                  <div key={oIdx} className="flex items-start gap-3" style={{ fontSize: `${fontSettings.option}pt` }}>
-                                    <div className="rounded-full border-2 border-black flex items-center justify-center font-bold shrink-0 mt-1" style={{ width: '22px', height: '22px', fontSize: '10pt' }}>
+                                  <div key={oIdx} className="option-item" style={{ fontSize: `${fontSettings.option + 1.5}pt` }}>
+                                    <div style={{ width: '26px', height: '26px', border: '2.5px solid black', borderRadius: '50%', display: 'inline-block', textAlign: 'center', lineHeight: '21px', fontWeight: '800', fontSize: '11pt', marginRight: '10pt', verticalAlign: 'middle' }}>
                                       {String.fromCharCode(65 + oIdx)}
                                     </div>
-                                    <span className="leading-tight">{opt}</span>
+                                    <span style={{ verticalAlign: 'middle' }}>{opt}</span>
                                   </div>
                                 ))}
+                                <div className="clear"></div>
                               </div>
                             ) : (
-                              <div className="ml-10 space-y-4 pr-6">
-                                <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                              <div className="options-container">
+                                <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
                                 {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
                                   <>
-                                    <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
-                                    <div className="border-b border-dotted border-slate-400 h-8 w-full"></div>
+                                    <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
+                                    <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
                                   </>
                                 )}
                               </div>
@@ -508,15 +296,11 @@ if (isPrintPreview) {
                     </div>
                   </div>
 
-                  <div className="h-[25mm] w-full flex flex-col justify-center px-[20mm] pb-4">
-                    <div className="border-t-2 border-black pt-3 flex justify-between items-center text-[10px] font-bold">
-                      <div className="flex flex-wrap items-center gap-x-6">
-                        <span className="uppercase">รายวิชา: {exercise.course}</span>
-                        <span>ผู้สอน: คร.{user.name} {user.surname}</span>
-                        <span className="italic">{user.school || user.position || 'โรงเรียนคุณภาพ'}</span>
-                      </div>
-                      <span className="text-[8px] text-slate-400 opacity-50">EduGen AI Tool</span>
-                    </div>
+                  {/* FOOTER 25mm */}
+                  <div className="footer">
+                    <div className="footer-left">รายวิชา: {exercise.course} | ผู้สอน: คร.{user.name} {user.surname}</div>
+                    <div className="footer-right">EduGen Pro Tool</div>
+                    <div className="clear"></div>
                   </div>
                 </div>
               ))}
