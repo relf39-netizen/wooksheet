@@ -211,81 +211,91 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           </div>
         </div>
 
-        {/* Right Preview Zone - Physical Block Logic Area */}
-        <div className="flex-1 w-full bg-white/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 no-print">
+        {/* Right Preview Zone - Beautiful UI + Physical Precision */}
+        <div className="flex-1 w-full bg-slate-100/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 no-print custom-scrollbar">
           <div className="min-w-fit flex justify-center">
             <div 
               id="unified-print-area" 
-              className="flex flex-col items-center gap-10"
+              className="flex flex-col items-center"
               style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
             >
               {chunks.map((chunk, pageIdx) => (
                 <div 
                   key={pageIdx}
-                  className="page shadow-2xl"
-                  style={{ width: '210mm', height: '297mm', background: 'white', display: 'block', position: 'relative', overflow: 'hidden', marginBottom: '30px', border: '1px solid #eee' }}
+                  className="a4-sheet bg-white text-black font-sarabun relative flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden text-left mb-12"
+                  style={{ width: '210mm', height: '297mm', minHeight: '297mm', boxSizing: 'border-box', display: 'block' }}
                 >
-                  {/* HEADER 30mm */}
-                  <div className="header">
-                    <div className="header-row">
-                      <div className="header-left">แบบฝึกหัด: {exercise.title}</div>
-                      <div className="header-right">หน้า {pageIdx + 1}/{chunks.length}</div>
-                      <div className="clear"></div>
+                  {/* HEADER (30mm) */}
+                  <div className="h-[30mm] w-full flex flex-col justify-end px-[20mm]">
+                    <div className="flex justify-between items-end pb-1 pr-1 font-bold">
+                      <div className="text-[14px] truncate pr-4">แบบฝึกหัด: {exercise.title}</div>
+                      <div className="text-[11px] shrink-0 text-slate-500">หน้า {pageIdx + 1} / {chunks.length}</div>
                     </div>
+                    <div className="border-t-[3px] border-black mb-4"></div>
                   </div>
 
-                  {/* CONTENT 242mm */}
-                  <div className="content">
+                  {/* CONTENT (242mm) */}
+                  <div className="h-[242mm] px-[20mm] py-4 flex flex-col overflow-hidden text-left">
                     {pageIdx === 0 && (
                       <>
-                        <div className="student">
-                          <div style={{ float: 'left', width: '60%' }}>ชื่อ-นามสกุล: ..................................................................................</div>
-                          <div style={{ float: 'left', width: '15%' }}>เลขที่: .......</div>
-                          <div style={{ float: 'right', width: '25%', textAlign: 'right' }}>ชั้น: ......... / .........</div>
-                          <div className="clear"></div>
+                        <div className="border-b-2 border-black pb-4 mb-8 text-[15pt] font-black flex items-center gap-6">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="shrink-0">ชื่อ-นามสกุล:</span>
+                            <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2"></div>
+                          </div>
+                          <div className="flex items-center gap-2 w-[100px] shrink-0">
+                            <span className="shrink-0">เลขที่:</span>
+                            <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2 text-center"></div>
+                          </div>
+                          <div className="flex items-center gap-2 w-[130px] shrink-0">
+                            <span className="shrink-0">ชั้น:</span>
+                            <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
+                            <span className="shrink-0">/</span>
+                            <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
+                          </div>
                         </div>
 
-                        <div className="title-area">
-                          <h1 style={{ fontSize: `${fontSettings.title + 2}pt`, fontWeight: '800', marginBottom: '4px' }}>{exercise.title}</h1>
-                          <p style={{ fontSize: `${fontSettings.indicators + 2}pt`, fontWeight: 'bold', color: '#333' }}>
-                            มฐ./ตัวชี้วัด: {contentData.indicators || exercise.indicators}
+                        <div className="mb-6 text-center">
+                          <h1 className="font-extrabold mb-1" style={{ fontSize: `${fontSettings.title + 2}pt` }}>{exercise.title}</h1>
+                          <p className="text-slate-800 font-bold italic mb-5" style={{ fontSize: `${fontSettings.indicators + 2}pt` }}>
+                            มาตรฐาน/ตัวชี้วัด: {contentData.indicators || exercise.indicators}
                           </p>
-                        </div>
-
-                        <div className="desc-box" style={{ fontSize: `${fontSettings.description + 1.5}pt` }}>
-                          <b style={{ textDecoration: 'underline', marginRight: '10px' }}>คำชี้แจง:</b> {contentData.description}
+                          <div className="bg-slate-50 p-5 border-l-[8px] border-black italic text-left leading-relaxed shadow-sm" style={{ fontSize: `${fontSettings.description + 1.5}pt` }}>
+                            <span className="font-extrabold not-italic mr-3 underline">คำชี้แจง:</span>
+                            {contentData.description}
+                          </div>
+                          <div className="mt-8 border-t-2 border-black w-full opacity-20"></div>
                         </div>
                       </>
                     )}
 
-                    <div className="questions">
+                    <div className="space-y-8 flex-1">
                       {chunk.map((item: any, idx: number) => {
-                        const globalIdx = (pageIdx * itemsPerPage) + idx + 1;
+                        const globalIdxVal = (pageIdx * itemsPerPage) + idx + 1;
                         return (
-                          <div key={idx} className="q-block">
-                            <div className="q-title" style={{ fontSize: `${fontSettings.question + 1.5}pt` }}>
-                              <span style={{ marginRight: '12pt' }}>{globalIdx}.</span>
-                              {item.question}
+                          <div key={idx} className="display-block" style={{ marginBottom: '8mm' }}>
+                            <div className="flex gap-4 mb-4" style={{ fontSize: `${fontSettings.question + 1.5}pt` }}>
+                              <span className="font-bold shrink-0">{globalIdxVal}.</span>
+                              <div className="font-bold leading-relaxed">{item.question}</div>
                             </div>
                             {item.options ? (
-                              <div className="options-container">
+                              <div className="grid grid-cols-2 gap-x-12 gap-y-4 ml-10 text-slate-900 text-left">
                                 {item.options.map((opt: string, oIdx: number) => (
-                                  <div key={oIdx} className="option-item" style={{ fontSize: `${fontSettings.option + 1.5}pt` }}>
-                                    <div style={{ width: '26px', height: '26px', border: '2.5px solid black', borderRadius: '50%', display: 'inline-block', textAlign: 'center', lineHeight: '21px', fontWeight: '800', fontSize: '11pt', marginRight: '10pt', verticalAlign: 'middle' }}>
+                                  <div key={oIdx} className="flex items-start gap-3" style={{ fontSize: `${fontSettings.option + 1.5}pt` }}>
+                                    <div className="rounded-full border-2 border-black flex items-center justify-center font-black shrink-0 mt-1" style={{ width: '24px', height: '24px', fontSize: '11pt' }}>
                                       {String.fromCharCode(65 + oIdx)}
                                     </div>
-                                    <span style={{ verticalAlign: 'middle' }}>{opt}</span>
+                                    <span className="leading-tight">{opt}</span>
                                   </div>
                                 ))}
-                                <div className="clear"></div>
                               </div>
                             ) : (
-                              <div className="options-container">
-                                <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
+                              <div className="ml-10 space-y-4 pr-6">
+                                <div className="border-b border-dotted border-slate-600 h-10 w-full opacity-50"></div>
                                 {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
                                   <>
-                                    <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
-                                    <div style={{ borderBottom: '1.5px dotted #000', height: '11mm', width: '96%' }}></div>
+                                    <div className="border-b border-dotted border-slate-600 h-10 w-full opacity-50"></div>
+                                    <div className="border-b border-dotted border-slate-600 h-10 w-full opacity-50"></div>
                                   </>
                                 )}
                               </div>
@@ -296,11 +306,15 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                     </div>
                   </div>
 
-                  {/* FOOTER 25mm */}
-                  <div className="footer">
-                    <div className="footer-left">รายวิชา: {exercise.course} | ผู้สอน: คร.{user.name} {user.surname}</div>
-                    <div className="footer-right">EduGen Pro Tool</div>
-                    <div className="clear"></div>
+                  {/* FOOTER (25mm) */}
+                  <div className="h-[25mm] w-full flex flex-col justify-center px-[20mm] pb-4 absolute bottom-0 left-0 bg-white">
+                    <div className="border-t-2 border-black pt-4 flex justify-between items-center text-[11pt] font-bold">
+                      <div className="flex flex-wrap items-center gap-x-8">
+                        <span className="uppercase text-slate-600">วิชา: {exercise.course}</span>
+                        <span>ครูผู้สอน: คร.{user.name} {user.surname}</span>
+                      </div>
+                      <span className="text-[10pt] font-black text-indigo-600 tracking-tighter">EduGen AI Tool</span>
+                    </div>
                   </div>
                 </div>
               ))}
