@@ -235,17 +235,6 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
               </div>
             </div>
           ))}
-                <div className="border-t-2 border-black pt-3 flex justify-between items-center text-[10px] font-bold">
-                  <div className="flex flex-wrap items-center gap-x-6">
-                    <span className="uppercase">รายวิชา: {exercise.course}</span>
-                    <span>ผู้สอน: คร.{user.name} {user.surname}</span>
-                    <span className="italic">{user.school || user.position || 'โรงเรียนคุณภาพ'}</span>
-                  </div>
-                  <span className="text-[8px] text-slate-400 opacity-50">EduGen AI Tool</span>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     );
