@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserCheck, UserX, Clock, Search, School, User as UserIcon, Database, Users, ShieldAlert, Trash2 } from 'lucide-react';
+import { UserCheck, UserX, Clock, Search, School, User as UserIcon, Database, Users, ShieldAlert, Trash2, FileText, LogIn, Activity } from 'lucide-react';
 import { Teacher } from '../types';
 
 export default function AdminDashboard({ initialTab = 'members' }: { initialTab?: 'members' | 'system' }) {
@@ -168,21 +168,59 @@ export default function AdminDashboard({ initialTab = 'members' }: { initialTab?
                           {t.status === 'active' ? 'อนุมัติแล้ว' : t.status === 'rejected' ? 'ปฏิเสธ' : 'รออนุมัติ'}
                         </span>
                       </div>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-slate-500">
-                        <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] text-slate-500">
+                        <div className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-lg">
                           <School size={12} className="text-slate-400" />
                           <span className="font-bold text-slate-700">{t.school}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-lg">
                           <span className="text-[9px] uppercase font-bold text-slate-400 tracking-widest leading-none">เลขบัตร:</span>
                           <span className="font-mono">{t.citizen_id}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 font-bold text-indigo-600">
+                        <div className="flex items-center gap-1.5 font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-100">
+                          <Activity size={10} />
                           <span>{t.position}</span>
                         </div>
-                        <div className={`flex items-center gap-1.2 font-black text-[9px] uppercase border px-2 py-0.5 rounded-full ${t.role === 'admin' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                        <div className={`flex items-center gap-1.5 font-black text-[9px] uppercase border px-2 py-1 rounded-lg ${t.role === 'admin' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                           <span>สิทธิ์: {t.role === 'admin' ? 'ผู้บริหารระบบ' : 'คุณครูทั่วไป'}</span>
                         </div>
+                      </div>
+
+                      {/* Statistics Section */}
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 group/stat">
+                          <FileText size={14} className="text-indigo-500" />
+                          <div className="flex flex-col">
+                            <span className="text-[8px] font-black text-indigo-400 uppercase leading-none">แบบฝึกที่สร้าง</span>
+                            <span className="text-sm font-black text-indigo-700 leading-tight">{t.exercise_count || 0} รายการ</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
+                          <LogIn size={14} className="text-emerald-500" />
+                          <div className="flex flex-col">
+                            <span className="text-[8px] font-black text-emerald-400 uppercase leading-none">เข้าใช้งาน</span>
+                            <span className="text-sm font-black text-emerald-700 leading-tight">{t.login_count || 0} ครั้ง</span>
+                          </div>
+                        </div>
+
+                        {t.last_login && (
+                          <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                            <Clock size={14} className="text-slate-400" />
+                            <div className="flex flex-col">
+                              <span className="text-[8px] font-black text-slate-400 uppercase leading-none">ล่าสุดเมื่อ</span>
+                              <span className="text-[10px] font-bold text-slate-600 leading-tight">
+                                {new Date(t.last_login).toLocaleDateString('th-TH', { 
+                                  day: 'numeric', 
+                                  month: 'short', 
+                                  year: '2-digit', 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

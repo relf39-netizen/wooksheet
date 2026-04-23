@@ -115,16 +115,16 @@ export default function App() {
               </div>
 
               {/* Center Navigation Links */}
-              <nav className="hidden md:flex items-center gap-1">
+              <nav className="hidden md:flex items-center gap-2 bg-slate-50/80 p-1.5 rounded-[22px] border border-slate-200/60 backdrop-blur-sm">
                 <HeaderLink 
-                  active={currentPage === 'home' || currentPage === 'admin'} 
-                  onClick={() => navigateTo(user.role === 'admin' ? 'admin' : 'home')} 
-                  label={user.role === 'admin' ? 'อนุมัติสมาชิก' : 'สร้างใบงาน'} 
+                  active={currentPage === 'home' || currentPage === 'generate' || currentPage === 'admin'} 
+                  onClick={() => navigateTo(user.role === 'admin' ? 'admin' : 'generate')} 
+                  label={user.role === 'admin' ? 'อนุมัติสมาชิก' : 'สร้างแบบฝึกใหม่'} 
                 />
                 <HeaderLink 
                   active={currentPage === 'history' || currentPage === 'admin_db'} 
                   onClick={() => navigateTo(user.role === 'admin' ? 'admin_db' : 'history')} 
-                  label={user.role === 'admin' ? 'จัดการระบบ' : 'ประวัติ'} 
+                  label={user.role === 'admin' ? 'จัดการระบบ' : 'คลังแบบฝึก'} 
                 />
                 <HeaderLink 
                   active={currentPage === 'settings' || currentPage === 'profile'} 
@@ -179,10 +179,10 @@ function HeaderLink({ active, onClick, label }: { active: boolean, onClick: () =
   return (
     <button 
       onClick={onClick} 
-      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+      className={`px-6 py-2 rounded-2xl text-sm font-bold transition-all duration-300 flex items-center justify-center min-w-[120px] ${
         active 
-          ? 'text-indigo-600 bg-indigo-50' 
-          : 'text-slate-500 hover:text-indigo-600 hover:after:w-full relative after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-indigo-600 after:transition-all'
+          ? 'text-white bg-indigo-600 shadow-[0_8px_20px_-4px_rgba(79,70,229,0.4)] scale-105' 
+          : 'text-slate-500 hover:text-indigo-600 hover:bg-white/80 border border-transparent hover:border-indigo-100'
       }`}
     >
       {label}

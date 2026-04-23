@@ -17,6 +17,9 @@ export interface Teacher {
   position: string;
   status: 'pending' | 'active' | 'rejected';
   role: 'teacher' | 'admin';
+  login_count?: number;
+  last_login?: string;
+  exercise_count?: number;
 }
 
 export interface Exercise {

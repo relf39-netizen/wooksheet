@@ -110,6 +110,9 @@ async function startServer() {
           if (user.status !== 'active') {
             return res.status(403).json({ success: false, message: 'บัญชีของคุณกำลังรอการตรวจสอบจากผู้ดูแลระบบ' });
           }
+          
+          // Increment login count and update last login
+          await pool.execute('UPDATE teachers SET login_count = login_count + 1, last_login = NOW() WHERE id = ?', [user.id]);
           req.session.user = { 
             id: user.id, 
             role: user.role || 'teacher', 
@@ -163,9 +166,16 @@ async function startServer() {
   app.get('/api/admin/teachers', async (req, res) => {
     if (req.session?.user?.role !== 'admin') return res.status(403).send();
     try {
-      const [rows] = await pool.execute('SELECT id, citizen_id, name, surname, school, position, status, role FROM teachers');
+      const [rows] = await pool.execute(`
+        SELECT t.id, t.citizen_id, t.name, t.surname, t.school, t.position, t.status, t.role, t.login_count, t.last_login,
+        (SELECT COUNT(*) FROM exercises WHERE teacher_id = t.id) as exercise_count
+        FROM teachers t
+      `);
       res.json(rows);
-    } catch (error) { res.status(500).send(); }
+    } catch (error) { 
+      console.error('Admin Fetch Error:', error);
+      res.status(500).send(); 
+    }
   });
 
   app.post('/api/admin/change-role', async (req, res) => {
@@ -218,9 +228,15 @@ async function startServer() {
       // Migrating existing table to add role column if missing
       try {
         await pool.execute('ALTER TABLE teachers ADD COLUMN role ENUM(\'teacher\', \'admin\') DEFAULT \'teacher\'');
-      } catch (e) {
-        // Column might already exist
-      }
+      } catch (e) {}
+      
+      try {
+        await pool.execute('ALTER TABLE teachers ADD COLUMN login_count INT DEFAULT 0');
+      } catch (e) {}
+
+      try {
+        await pool.execute('ALTER TABLE teachers ADD COLUMN last_login TIMESTAMP NULL');
+      } catch (e) {}
 
       await pool.execute(`
         CREATE TABLE IF NOT EXISTS exercises (
