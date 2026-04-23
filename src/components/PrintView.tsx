@@ -190,8 +190,21 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             .pr-1 { padding-right: 4px; }
             .grid { display: grid; }
             .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .bg-slate-50 { background-color: #f8fafc; }
-            .border-l-8 { border-left-width: 8px; }
+            .bg-slate-50 { background-color: #f8fafc !important; }
+            .border-l-8 { border-left-width: 8px !important; }
+            .translate-y-2 { transform: translateY(8px); }
+            .border-dotted { border-style: dotted !important; }
+            .border-b { border-bottom-width: 1px !important; }
+            .not-italic { font-style: normal !important; }
+            .min-w-0 { min-width: 0; }
+            .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+            /* Ensure lines in student info are visible */
+            .dotted-line { border-bottom: 2px dotted black !important; height: 1px; transform: translateY(10px); flex: 1; }
+            .border-l-2 { border-left-width: 2px !important; }
+            .pl-6 { padding-left: 24px !important; }
+            .pr-6 { padding-right: 24px !important; }
+            .items-stretch { align-items: stretch !important; }
           </style>
         </head>
         <body>
@@ -317,20 +330,20 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                   <div className="h-[242mm] px-[20mm] py-4 flex flex-col overflow-hidden text-left">
                     {pageIdx === 0 && (
                       <>
-                        <div className="border-b-2 border-black pb-4 mb-8 text-[15pt] font-black flex items-center gap-6">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="border-b-[3px] border-black pb-5 mb-10 text-[16pt] font-black flex items-stretch">
+                          <div className="flex items-center gap-3 flex-1 min-w-0 pr-6">
                             <span className="shrink-0">ชื่อ-นามสกุล:</span>
-                            <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2"></div>
+                            <div className="dotted-line"></div>
                           </div>
-                          <div className="flex items-center gap-2 w-[100px] shrink-0">
+                          <div className="flex items-center gap-3 w-[120px] shrink-0 border-l-2 border-black pl-6">
                             <span className="shrink-0">เลขที่:</span>
-                            <div className="border-b border-dotted border-black flex-1 h-1 translate-y-2 text-center"></div>
+                            <div className="dotted-line"></div>
                           </div>
-                          <div className="flex items-center gap-2 w-[130px] shrink-0">
+                          <div className="flex items-center gap-3 w-[180px] shrink-0 border-l-2 border-black pl-6">
                             <span className="shrink-0">ชั้น:</span>
-                            <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
+                            <div className="dotted-line"></div>
                             <span className="shrink-0">/</span>
-                            <div className="border-b border-dotted border-black w-8 h-1 translate-y-2 text-center"></div>
+                            <div className="dotted-line"></div>
                           </div>
                         </div>
 
