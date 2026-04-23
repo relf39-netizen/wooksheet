@@ -138,15 +138,31 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             .border-b { border-bottom: 1.5px solid black !important; }
             .border-b-2 { border-bottom: 2.2px solid black !important; }
             .border-b-[3px] { border-bottom: 3.2px solid black !important; }
+            .border-t-[3px] { border-top: 3.2px solid black !important; }
             .border-t-2 { border-top: 2.2px solid black !important; }
             .border-l-2 { border-left: 2.2px solid black !important; }
             .border-black { border-color: black !important; }
+            
+            .mb-2 { margin-bottom: 8px !important; }
+            .mb-4 { margin-bottom: 16px !important; }
+            .mb-6 { margin-bottom: 24px !important; }
+            .mb-10 { margin-bottom: 40px !important; }
+            .mt-8 { margin-top: 32px !important; }
+            .pb-1 { padding-bottom: 4px !important; }
+            .pb-5 { padding-bottom: 20px !important; }
+            .pr-1 { padding-right: 4px !important; }
+            .pr-4 { padding-right: 16px !important; }
+            .pl-6 { padding-left: 24px !important; }
             
             .font-bold { font-weight: 700 !important; }
             .font-black { font-weight: 900 !important; }
             .font-extrabold { font-weight: 800 !important; }
             .text-center { text-align: center !important; }
             .text-left { text-align: left !important; }
+            .text-slate-500 { color: #64748b !important; }
+            .text-slate-600 { color: #475569 !important; }
+            .text-slate-800 { color: #1e293b !important; }
+            .text-indigo-600 { color: #4f46e5 !important; }
             
             .dotted-line { 
               border-bottom: 2px dotted #000 !important; 
@@ -298,8 +314,8 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                   {/* HEADER (30mm) */}
                   <div className="h-[30mm] w-full flex flex-col justify-end px-[20mm]">
                     <div className="flex justify-between items-end pb-1 pr-1 font-bold">
-                      <div className="text-[14px] truncate pr-4">แบบฝึกหัด: {exercise.title}</div>
-                      <div className="text-[11px] shrink-0 text-slate-500">หน้า {pageIdx + 1} / {chunks.length}</div>
+                      <div className="text-[14px] truncate pr-4 text-black">แบบฝึกหัด: {exercise.title}</div>
+                      <div className="text-[11px] shrink-0 text-black">หน้า {pageIdx + 1} / {chunks.length}</div>
                     </div>
                     <div className="border-t-[3px] border-black mb-4"></div>
                   </div>
@@ -313,11 +329,11 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                             <span className="shrink-0">ชื่อ-นามสกุล:</span>
                             <div className="dotted-line"></div>
                           </div>
-                          <div className="flex items-center gap-3 w-[120px] shrink-0 border-l-2 border-black pl-6">
+                          <div className="flex items-center gap-3 w-[120px] shrink-0 pl-6">
                             <span className="shrink-0">เลขที่:</span>
                             <div className="dotted-line"></div>
                           </div>
-                          <div className="flex items-center gap-3 w-[180px] shrink-0 border-l-2 border-black pl-6">
+                          <div className="flex items-center gap-3 w-[180px] shrink-0 pl-6">
                             <span className="shrink-0">ชั้น:</span>
                             <div className="dotted-line"></div>
                             <span className="shrink-0">/</span>
