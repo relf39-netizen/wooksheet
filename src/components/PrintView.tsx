@@ -70,7 +70,14 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const html = document.getElementById('unified-print-area')?.innerHTML;
+    const printArea = document.getElementById('unified-print-area');
+    if (!printArea) return;
+    
+    // Create a clone to strip transformations
+    const clone = printArea.cloneNode(true) as HTMLElement;
+    clone.style.transform = 'none';
+    clone.style.zoom = '1';
+    const html = clone.innerHTML;
 
     printWindow.document.write(`
       <html>
@@ -78,16 +85,19 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
           <title>EduGen AI - ${exercise.title}</title>
           <link rel="preconnect" href="https://fonts.googleapis.com">
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-          <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@100;200;300;400;500;600;700;800&display=swap" rel="stylesheet">
           <style>
-            @page { size: A4; margin: 0; }
+            @page { 
+              size: A4; 
+              margin: 0 !important; 
+            }
             body { 
               margin: 0; 
               padding: 0; 
-              font-family: 'IBM Plex Sans Thai', sans-serif; 
+              font-family: 'Sarabun', sans-serif; 
               background: white; 
               -webkit-print-color-adjust: exact; 
-              print-color-adjust: exact; 
+              print-color-adjust: exact;
             }
             
             .a4-sheet {
@@ -99,138 +109,80 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
               background: white;
               box-sizing: border-box;
               page-break-after: always;
-              font-family: 'IBM Plex Sans Thai', sans-serif !important;
+              font-family: 'Sarabun', sans-serif !important;
             }
 
-            .header { 
-              height: 30mm; 
-              width: 100%; 
-              border-bottom: 4px solid black; 
-              padding: 15mm 20mm 5mm 20mm; 
-              display: flex; 
-              justify-content: space-between; 
-              align-items: flex-end;
-              box-sizing: border-box; 
-            }
+            /* Manual overrides for common layout classes to ensure they work in print window */
+            [class*="px-[20mm]"] { padding-left: 20mm !important; padding-right: 20mm !important; }
+            [class*="h-[30mm]"] { height: 30mm !important; }
+            [class*="h-[242mm]"] { height: 242mm !important; }
+            [class*="h-[25mm]"] { height: 25mm !important; }
             
-            .header-text { font-size: 14pt; font-weight: 700; }
-            .header-page { font-size: 11pt; color: #666; font-weight: 500; }
-
-            .content { padding: 8mm 20mm; display: block; box-sizing: border-box; }
-            .student-info { border-bottom: 2.5px solid black; padding-bottom: 4mm; margin-bottom: 10mm; font-size: 15pt; font-weight: 800; display: flex; gap: 20px; align-items: center; }
+            .header { height: 30mm; width: 100%; border-bottom: 3px solid black; padding: 0 20mm; display: flex; align-items: flex-end; box-sizing: border-box; }
+            .content { padding: 0 20mm; height: 242mm; display: flex; flex-direction: column; box-sizing: border-box; position: relative; }
             
-            .footer { 
-              height: 25mm; 
-              width: 100%; 
-              border-top: 3px solid black; 
-              padding: 5mm 20mm; 
-              display: flex; 
-              justify-content: space-between; 
-              align-items: center;
-              box-sizing: border-box; 
-              position: absolute; 
-              bottom: 0; 
-              left: 0; 
-            }
-            
-            #print-content .a4-sheet { box-shadow: none !important; border: none !important; margin: 0 !important; }
-            #print-content .no-print { display: none !important; }
-            
-            .q-num { font-weight: 800; font-size: 16pt; margin-right: 12px; }
-            .q-text { font-weight: 700; font-size: 16pt; line-height: 1.6; }
-            .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px 40px; margin-left: 12mm; margin-top: 6mm; }
-            .opt-item { display: flex; align-items: start; gap: 10px; font-size: 15pt; font-weight: 500; }
-            .opt-circle { 
-              width: 24px; height: 24px; border: 2px solid black; border-radius: 50%; 
-              display: flex; align-items: center; justify-content: center; 
-              font-weight: 900; font-size: 11pt; flex-shrink: 0; margin-top: 4px;
-            }
-
-            /* Utilities for tailwind classes in the mapped HTML */
             .flex { display: flex !important; }
             .flex-col { flex-direction: column !important; }
-            .flex-row { flex-direction: row !important; }
-            .justify-end { justify-content: flex-end !important; }
             .justify-between { justify-content: space-between !important; }
             .justify-center { justify-content: center !important; }
+            .justify-end { justify-content: flex-end !important; }
             .items-center { align-items: center !important; }
             .items-end { align-items: flex-end !important; }
-            .items-start { align-items: flex-start !important; }
             .items-stretch { align-items: stretch !important; }
-            .gap-2 { gap: 8px !important; }
-            .gap-3 { gap: 12px !important; }
-            .gap-4 { gap: 16px !important; }
-            .gap-6 { gap: 24px !important; }
-            .gap-8 { gap: 32px !important; }
-            .gap-x-8 { column-gap: 32px !important; }
-            .gap-x-12 { column-gap: 48px !important; }
-            .gap-y-4 { row-gap: 16px !important; }
-            .flex-1 { flex: 1 1 0% !important; min-width: 0 !important; }
+            .flex-1 { flex: 1 1 0% !important; }
             .shrink-0 { flex-shrink: 0 !important; }
             .w-full { width: 100% !important; }
-            .h-full { height: 100% !important; }
-            .min-w-0 { min-width: 0 !important; }
-            .text-center { text-align: center !important; }
-            .text-left { text-align: left !important; }
-            .text-right { text-align: right !important; }
+            .gap-3 { gap: 12px !important; }
+            .gap-4 { gap: 16px !important; }
+            
+            .border-b { border-bottom: 1.5px solid black !important; }
+            .border-b-2 { border-bottom: 2.2px solid black !important; }
+            .border-b-[3px] { border-bottom: 3.2px solid black !important; }
+            .border-t-2 { border-top: 2.2px solid black !important; }
+            .border-l-2 { border-left: 2.2px solid black !important; }
+            .border-black { border-color: black !important; }
+            
             .font-bold { font-weight: 700 !important; }
             .font-black { font-weight: 900 !important; }
             .font-extrabold { font-weight: 800 !important; }
-            .italic { font-style: italic !important; }
-            .not-italic { font-style: normal !important; }
-            .underline { text-decoration: underline !important; }
-            .border-t-2 { border-top: 2px solid black !important; }
-            .border-b-2 { border-bottom: 2px solid black !important; }
-            .border-b-4 { border-bottom: 4px solid black !important; }
-            .border-b { border-bottom: 1px solid black !important; }
-            .border-b-\[3px\] { border-bottom: 3px solid black !important; }
-            .border-l-2 { border-left: 2px solid black !important; }
-            .border-black { border-color: black !important; }
-            .border-2 { border: 2px solid black !important; }
-            .rounded-full { border-radius: 9999px !important; }
-            .mb-1 { margin-bottom: 4px !important; }
-            .mb-4 { margin-bottom: 16px !important; }
-            .mb-5 { margin-bottom: 20px !important; }
-            .mb-6 { margin-bottom: 24px !important; }
-            .mb-8 { margin-bottom: 32px !important; }
-            .mb-10 { margin-bottom: 40px !important; }
-            .mt-1 { margin-top: 4px !important; }
-            .mt-4 { margin-top: 16px !important; }
-            .mt-8 { margin-top: 32px !important; }
-            .ml-10 { margin-left: 40px !important; }
-            .pb-1 { padding-bottom: 4px !important; }
-            .pb-4 { padding-bottom: 16px !important; }
-            .pb-5 { padding-bottom: 20px !important; }
-            .pr-1 { padding-right: 4px !important; }
-            .pr-4 { padding-right: 16px !important; }
-            .pr-6 { padding-right: 24px !important; }
-            .pl-6 { padding-left: 24px !important; }
+            .text-center { text-align: center !important; }
+            .text-left { text-align: left !important; }
+            
+            .dotted-line { 
+              border-bottom: 2px dotted #000 !important; 
+              flex: 1 !important; 
+              height: 20px !important; 
+              margin-bottom: 4px !important;
+              min-width: 30px;
+            }
+
+            .opt-circle { 
+              width: 26px; height: 26px; border: 2.2px solid black; border-radius: 50%; 
+              display: flex; align-items: center; justify-content: center; 
+              font-weight: 800; font-size: 11pt; flex-shrink: 0; margin-top: 4px;
+            }
+            
             .grid { display: grid !important; }
-            .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-            .bg-slate-50 { background-color: #f8fafc !important; }
-            .h-\[30mm\] { height: 30mm !important; }
-            .h-\[242mm\] { height: 242mm !important; }
-            .h-\[25mm\] { height: 25mm !important; }
-            .px-\[20mm\] { padding-left: 20mm !important; padding-right: 20mm !important; }
-            .py-4 { padding-top: 16px !important; padding-bottom: 16px !important; }
-            .pt-4 { padding-top: 16px !important; }
-            .pb-5 { padding-bottom: 20px !important; }
-            .text-\[14px\] { font-size: 14px !important; }
-            .text-\[11px\] { font-size: 11px !important; }
-            .text-\[10px\] { font-size: 10px !important; }
-            .text-\[11pt\] { font-size: 11pt !important; }
-            .text-\[10pt\] { font-size: 10pt !important; }
-            .border-t-\[3px\] { border-top: 3px solid black !important; }
-            .border-b-\[3px\] { border-bottom: 3px solid black !important; }
-            .border-l-8 { border-left: 8px solid black !important; }
-            .translate-y-2 { transform: translateY(8px) !important; }
+            .grid-cols-2 { grid-template-columns: 1fr 1fr !important; }
+            .gap-x-12 { column-gap: 48px !important; }
+            .gap-y-4 { row-gap: 16px !important; }
+
+            /* Ensure everything is 100% width and centered */
+            #print-content { width: 210mm; margin: 0 auto; }
+            
+            /* Helper for matching exercises or long lines */
             .border-dotted { border-style: dotted !important; }
-            .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap !important; }
-            .dotted-line { border-bottom: 2px dotted black !important; height: 1px !important; transform: translateY(10px) !important; flex: 1 !important; }
-            .border-l-2 { border-left-width: 2px !important; }
-            .pl-6 { padding-left: 24px !important; }
-            .pr-6 { padding-right: 24px !important; }
-            .items-stretch { align-items: stretch !important; }
+            .opacity-50 { opacity: 0.5 !important; }
+            .bg-slate-50 { background-color: #f8fafc !important; border-left: 6px solid black !important; }
+          </style>
+        </head>
+        <body>
+          <div id="print-content">
+            ${html}
+          </div>
+        </body>
+      </html>
+    `);
           </style>
         </head>
         <body>
@@ -332,18 +284,25 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
         </div>
 
         {/* Right Preview Zone - Beautiful UI + Physical Precision */}
-        <div className="flex-1 w-full bg-slate-100/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-12 no-print custom-scrollbar">
-          <div className="min-w-fit flex justify-center">
+        <div className="flex-1 w-full bg-slate-200/50 rounded-3xl border border-slate-200 h-full overflow-y-auto p-20 no-print custom-scrollbar">
+          <div className="min-w-fit flex justify-center py-10">
             <div 
               id="unified-print-area" 
-              className="flex flex-col items-center"
+              className="flex flex-col items-center gap-16"
               style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
             >
               {chunks.map((chunk, pageIdx) => (
                 <div 
                   key={pageIdx}
-                  className="a4-sheet bg-white text-black font-sarabun relative flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden text-left mb-12"
-                  style={{ width: '210mm', height: '297mm', minHeight: '297mm', boxSizing: 'border-box', display: 'block' }}
+                  className="a4-sheet bg-white text-black font-sarabun relative flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.12),0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden text-left"
+                  style={{ 
+                    width: '210mm', 
+                    height: '297mm', 
+                    minHeight: '297mm', 
+                    boxSizing: 'border-box', 
+                    display: 'block',
+                    border: '1px solid #e2e8f0'
+                  }}
                 >
                   {/* HEADER (30mm) */}
                   <div className="h-[30mm] w-full flex flex-col justify-end px-[20mm]">
@@ -470,9 +429,23 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
         .font-thai { font-family: 'IBM Plex Sans Thai', sans-serif; }
         .font-sarabun { font-family: 'Sarabun', sans-serif; }
         
+        .dotted-line { 
+          border-bottom: 2px dotted #000 !important; 
+          flex: 1 !important; 
+          height: 20px !important; 
+          margin-bottom: 4px !important;
+          min-width: 30px;
+        }
+
+        .opt-circle { 
+          width: 26px; height: 26px; border: 2.2px solid black; border-radius: 50%; 
+          display: flex; align-items: center; justify-content: center; 
+          font-weight: 800; font-size: 11pt; flex-shrink: 0; margin-top: 4px;
+        }
+
         @media screen {
           .a4-sheet {
-             font-family: 'IBM Plex Sans Thai', sans-serif !important;
+             font-family: 'Sarabun', sans-serif !important;
           }
         }
 
