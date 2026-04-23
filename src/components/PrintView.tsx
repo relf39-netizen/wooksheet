@@ -183,15 +183,6 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
         </body>
       </html>
     `);
-          </style>
-        </head>
-        <body>
-          <div id="print-content">
-            ${html}
-          </div>
-        </body>
-      </html>
-    `);
 
     printWindow.document.close();
     
@@ -294,14 +285,14 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
               {chunks.map((chunk, pageIdx) => (
                 <div 
                   key={pageIdx}
-                  className="a4-sheet bg-white text-black font-sarabun relative flex flex-col shadow-[0_0_80px_rgba(0,0,0,0.12),0_10px_30px_rgba(0,0,0,0.08)] overflow-hidden text-left"
+                  className="a4-sheet bg-white text-black font-sarabun relative flex flex-col shadow-sm overflow-hidden text-left"
                   style={{ 
                     width: '210mm', 
                     height: '297mm', 
                     minHeight: '297mm', 
                     boxSizing: 'border-box', 
                     display: 'block',
-                    border: '1px solid #e2e8f0'
+                    border: '1px solid #d1d5db'
                   }}
                 >
                   {/* HEADER (30mm) */}
@@ -351,33 +342,52 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                     <div className="space-y-8 flex-1">
                       {chunk.map((item: any, idx: number) => {
                         const globalIdxVal = (pageIdx * itemsPerPage) + idx + 1;
+                        const isMatching = contentData.type === 'matching' || (item.type === 'matching');
+                        
+                        // Collect and sort answers alphabetically for deterministic matching options
+                        const sectionAnswers = isMatching ? chunk.map((it: any) => it.answer).sort((a: string, b: string) => a.localeCompare(b, 'th')) : [];
+
                         return (
                           <div key={idx} className="display-block" style={{ marginBottom: '8mm' }}>
                             <div className="flex gap-4 mb-4" style={{ fontSize: `${fontSettings.question + 1.5}pt` }}>
-                              <span className="font-bold shrink-0">{globalIdxVal}.</span>
-                              <div className="font-bold leading-relaxed">{item.question}</div>
-                            </div>
-                            {item.options ? (
-                              <div className="grid grid-cols-2 gap-x-12 gap-y-4 ml-10 text-slate-900 text-left">
-                                {item.options.map((opt: string, oIdx: number) => (
-                                  <div key={oIdx} className="flex items-start gap-3" style={{ fontSize: `${fontSettings.option + 1.5}pt` }}>
-                                    <div className="opt-circle">
-                                      {String.fromCharCode(65 + oIdx)}
-                                    </div>
-                                    <span className="leading-tight">{opt}</span>
+                              <span className="font-bold shrink-0">
+                                {isMatching ? <span className="mr-2">( &nbsp;&nbsp;&nbsp; )</span> : null}
+                                {globalIdxVal}.
+                              </span>
+                              <div className="flex-1 flex justify-between items-start gap-8">
+                                <div className="font-bold leading-relaxed flex-1">{item.question}</div>
+                                {isMatching && (
+                                  <div className="w-[45%] flex items-start gap-3 pl-6 border-l-[1.5px] border-slate-300">
+                                    <span className="font-bold shrink-0">{String.fromCharCode(3585 + idx)}.</span>
+                                    <span className="leading-tight">{sectionAnswers[idx]}</span>
                                   </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="ml-10 space-y-4 pr-6">
-                                <div className="border-b border-dotted border-slate-600 h-10 w-full opacity-50"></div>
-                                {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
-                                  <>
-                                    <div className="border-b border-dotted border-slate-600 h-10 w-full opacity-50"></div>
-                                    <div className="border-b border-dotted border-slate-600 h-10 w-full opacity-50"></div>
-                                  </>
                                 )}
                               </div>
+                            </div>
+                            
+                            {!isMatching && (
+                              item.options ? (
+                                <div className="grid grid-cols-2 gap-x-12 gap-y-4 ml-10 text-slate-900 text-left">
+                                  {item.options.map((opt: string, oIdx: number) => (
+                                    <div key={oIdx} className="flex items-start gap-3" style={{ fontSize: `${fontSettings.option + 1.5}pt` }}>
+                                      <div className="opt-circle">
+                                        {String.fromCharCode(65 + oIdx)}
+                                      </div>
+                                      <span className="leading-tight">{opt}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="ml-10 space-y-4 pr-6">
+                                  <div className="border-b border-dotted border-slate-600 h-10 w-full opacity-50"></div>
+                                  {(contentData.type === 'essay' || contentData.type === 'math_steps') && (
+                                    <>
+                                      <div className="border-b border-dotted border-slate-600 h-10 w-full opacity-50"></div>
+                                      <div className="border-b border-dotted border-slate-600 h-10 w-full opacity-50"></div>
+                                    </>
+                                  )}
+                                </div>
+                              )
                             )}
                           </div>
                         );

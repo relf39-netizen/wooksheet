@@ -117,7 +117,7 @@ export default function App() {
               {/* Center Navigation Links */}
               <nav className="hidden md:flex items-center gap-2 bg-slate-50/80 p-1.5 rounded-[22px] border border-slate-200/60 backdrop-blur-sm">
                 <HeaderLink 
-                  active={currentPage === 'home' || currentPage === 'generate'} 
+                  active={currentPage === 'generate'} 
                   onClick={() => navigateTo(user.role === 'admin' ? 'admin' : 'generate')} 
                   label={user.role === 'admin' ? 'อนุมัติสมาชิก' : 'สร้างแบบฝึกใหม่'} 
                 />
@@ -127,7 +127,7 @@ export default function App() {
                   label={user.role === 'admin' ? 'จัดการระบบ' : 'คลังแบบฝึกหัด'} 
                 />
                 <HeaderLink 
-                  active={currentPage === 'profile'} 
+                  active={currentPage === 'home'} 
                   onClick={() => navigateTo('home')} 
                   label="ข้อมูลส่วนตัว" 
                 />

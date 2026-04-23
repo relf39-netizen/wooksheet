@@ -136,9 +136,15 @@ function ExerciseRender({
                   />
                 ) : (
                   exerciseType === 'matching' ? (
-                    <div className="grid grid-cols-2 gap-24">
-                      <div className="border-b border-black pb-1">{item.question}</div>
-                      <div className="border-b border-black pb-1 text-right italic text-slate-300">....................................</div>
+                    <div className="flex justify-between items-start gap-8 w-full border-b border-black pb-1">
+                      <div className="flex items-center gap-3 flex-1">
+                        <span className="not-italic opacity-50 shrink-0">( &nbsp;&nbsp;&nbsp; )</span>
+                        <div className="font-bold leading-relaxed">{item.question}</div>
+                      </div>
+                      <div className="w-[45%] flex items-start gap-3 pl-6 border-l-[1.5px] border-slate-300">
+                        <span className="font-bold shrink-0">{String.fromCharCode(3585 + idx)}.</span>
+                        <div className="leading-tight">{item.answer}</div>
+                      </div>
                     </div>
                   ) : (
                     <span>{item.question}</span>
@@ -301,8 +307,9 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
 
       const prompt = `สร้างแบบฝึกหัดเรื่อง: "${formData.topic}" สำหรับวิชา: ${formData.course} ระดับชั้น: ${formData.grade} รูปแบบ: ${formData.type} จำนวน: ${formData.count} ข้อ 
       สำคัญ: 
-      1. ให้ระบุ มาตรฐานและตัวชี้วัดแบบย่อ ในฟิลด์ indicators (ตัวอย่างเช่น "มาตรฐาน ค 1.1 ป.4/1, ป.4/2")
-      2. ในส่วนของ explanation สำหรับครู ให้เขียนคำอธิบายเหตุผลของคำตอบที่ชัดเจนและเข้าใจง่าย เพื่อให้คุณครูนำไปใช้อธิบายให้นักเรียนฟังต่อได้
+      1. ให้ระบุ มาตรฐานและตัวชี้วัดแบบย่อ ในฟิลด์ indicators (ตัวย่างเช่น "มาตรฐาน ค 1.1 ป.4/1, ป.4/2")
+      2. ในส่วนของ explanation สำหรับครู ให้เขียนคำอธิบายเหตุผลของคำตอบที่ชัดเจนและเข้าใจง่าย
+      ${formData.type === 'matching' ? '3. สำหรับรูปแบบจับคู่ (matching): ฟิลด์ "question" คือข้อความฝั่งซ้าย และฟิลด์ "answer" คือข้อความที่ถูกต้องฝั่งขวา' : ''}
       ให้ตอบกลับเป็น JSON ภาษาไทย`;
 
       const response = await ai.models.generateContent({
