@@ -136,17 +136,10 @@ export default function App() {
               {/* Right Side Info & Logout */}
               <div className="flex items-center gap-4 border-l border-slate-100 pl-6 ml-2">
                 <div className="text-right hidden sm:flex flex-col justify-center">
-                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">ทดลองครู</div>
                   <div className="text-sm font-bold text-slate-900 leading-none">{user.name} {user.surname}</div>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                   <button 
-                    onClick={() => {}} // Reset Chat/Actions as in many edu tools
-                    className="p-2 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-100 flex items-center gap-2 text-[10px] font-bold"
-                  >
-                    ล้างแชท
-                  </button>
                   <button 
                     onClick={handleLogout}
                     className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors border border-transparent"
