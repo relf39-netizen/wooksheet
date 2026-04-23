@@ -339,7 +339,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
       setResult(JSON.parse(response.text));
     } catch (error: any) {
       if (error.message?.includes('503') || error.message?.includes('high demand')) {
-        alert('ขณะนี้ AI มีผู้ใช้งานเป็นจำนวนมากครับ กรุณารอประมาณ 5-10 วินาทีแล้วกดปุ่ม "สร้างเพิ่ม" หรือ "สร้างใบงาน" อีกครั้งนะครับ');
+        alert('ขณะนี้ AI มีผู้ใช้งานเป็นจำนวนมากครับ กรุณารอประมาณ 5-10 วินาทีแล้วกดปุ่ม "สร้างเพิ่ม" หรือ "สร้างแบบฝึกใหม่" อีกครั้งนะครับ');
       } else {
         alert('เกิดข้อผิดพลาด: ' + error.message);
       }
@@ -547,7 +547,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
                 <div className="repeating-header-box h-[25mm] w-full bg-white flex flex-col justify-end px-12 pb-4">
                   <div className="flex items-center justify-between border-b-2 border-black pb-2">
                     <div className="text-[14px] font-extrabold uppercase text-left">
-                      ใบงาน/แบบฝึกหัด: {formData.title || result?.title || combinedResults[0]?.title || 'ไม่มีหัวข้อ'}
+                      แบบฝึกหัด: {formData.title || result?.title || combinedResults[0]?.title || 'ไม่มีหัวข้อ'}
                     </div>
                     <div className="text-[12px] font-bold page-counter-indicator"></div>
                   </div>
@@ -820,7 +820,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
                 className={`w-full text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-indigo-200 disabled:opacity-50 transition-all active:scale-95 ${combinedResults.length > 0 ? 'bg-indigo-500' : 'bg-indigo-600 hover:bg-indigo-700'}`}
               >
                 {generating ? <Loader2 className="animate-spin" size={22} /> : <Sparkles size={22} />}
-                <span className="text-lg">สร้างใบงานด้วย AI</span>
+                <span className="text-lg">สร้างแบบฝึกใหม่ด้วย AI</span>
               </button>
 
               {/* AI Appender - Replaced with a simpler button / interaction if needed, keeping it as is but styled */}
@@ -878,8 +878,8 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
                    <div className="w-24 h-24 bg-white rounded-3xl shadow-sm border border-slate-100 flex items-center justify-center mb-6">
                       <FileText size={40} className="text-slate-200" />
                    </div>
-                   <h3 className="text-xl font-bold text-slate-300 tracking-tight mb-2">ยังไม่มีใบงาน</h3>
-                   <p className="text-sm text-slate-400 max-w-xs">กรุณาใช้ AI Generate ด้านซ้ายมือเพื่อเริ่มสร้างเนื้อหาใบงานของคุณครูครับ</p>
+                   <h3 className="text-xl font-bold text-slate-300 tracking-tight mb-2">ยังไม่มีแบบฝึกหัด</h3>
+                   <p className="text-sm text-slate-400 max-w-xs">กรุณาใช้ AI Generate ด้านซ้ายมือเพื่อเริ่มสร้างเนื้อหาแบบฝึกหัดของคุณครูครับ</p>
                 </div>
               )}
             </div>
