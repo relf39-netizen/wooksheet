@@ -136,14 +136,29 @@ function ExerciseRender({
                   />
                 ) : (
                   exerciseType === 'matching' ? (
-                    <div className="flex justify-between items-start gap-8 w-full border-b border-black pb-1">
-                      <div className="flex items-center gap-3 flex-1">
-                        <span className="not-italic opacity-50 shrink-0">( &nbsp;&nbsp;&nbsp; )</span>
-                        <div className="font-bold leading-relaxed">{item.question}</div>
+                    <div className="flex justify-between items-center gap-12 w-full border-b border-black pb-4 hover:bg-slate-50 transition-colors rounded-lg group/match">
+                      <div className="flex items-center gap-6 flex-1 min-w-0">
+                        <span className="not-italic opacity-30 shrink-0 font-normal">( &nbsp;&nbsp;&nbsp; )</span>
+                        <div className="flex items-center gap-4 flex-1">
+                          {item.imageKeyword && (
+                            <div className="w-16 h-16 shrink-0 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 shadow-sm group-hover/match:scale-110 transition-transform">
+                              <img 
+                                src={`https://loremflickr.com/150/150/${encodeURIComponent(item.imageKeyword)}?lock=${idx}`} 
+                                alt={item.imageKeyword}
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          )}
+                          <div className="font-bold leading-relaxed truncate">{item.question}</div>
+                        </div>
                       </div>
-                      <div className="w-[45%] flex items-start gap-3 pl-6 border-l-[1.5px] border-slate-300">
-                        <span className="font-bold shrink-0">{String.fromCharCode(3585 + idx)}.</span>
-                        <div className="leading-tight">{item.answer}</div>
+                      
+                      <div className="w-[80px] h-[2px] bg-slate-100 relative after:content-[''] after:absolute after:right-0 after:-top-1 after:w-2 after:h-2 after:bg-slate-300 after:rounded-full before:content-[''] before:absolute before:left-0 before:-top-1 before:w-2 before:h-2 before:bg-slate-300 before:rounded-full"></div>
+
+                      <div className="w-[40%] flex items-start gap-4 pl-8 border-l-[2px] border-slate-200 text-left">
+                        <span className="font-black text-indigo-600 shrink-0">{String.fromCharCode(3585 + idx)}.</span>
+                        <div className="leading-tight font-medium">{item.answer}</div>
                       </div>
                     </div>
                   ) : (
@@ -247,7 +262,8 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
     grade: 'ป.1',
     type: 'multiple_choice' as ExerciseType,
     count: 5,
-    topic: ''
+    topic: '',
+    useVisuals: false
   });
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -310,6 +326,7 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
       1. ให้ระบุ มาตรฐานและตัวชี้วัดแบบย่อ ในฟิลด์ indicators (ตัวย่างเช่น "มาตรฐาน ค 1.1 ป.4/1, ป.4/2")
       2. ในส่วนของ explanation สำหรับครู ให้เขียนคำอธิบายเหตุผลของคำตอบที่ชัดเจนและเข้าใจง่าย
       ${formData.type === 'matching' ? '3. สำหรับรูปแบบจับคู่ (matching): ฟิลด์ "question" คือข้อความฝั่งซ้าย และฟิลด์ "answer" คือข้อความที่ถูกต้องฝั่งขวา' : ''}
+      ${formData.useVisuals ? '4. (สำคัญ) สำหรับรูปภาพ: ให้ระบุ keyword ภาษาอังกฤษสั้นๆ (1-2 คำ) ในฟิลด์ "imageKeyword" เพื่อใช้แสดงรูปภาพประกอบในข้อนั้นๆ เช่น "bird", "apple", "bicycle"' : ''}
       ให้ตอบกลับเป็น JSON ภาษาไทย`;
 
       const response = await ai.models.generateContent({
@@ -332,7 +349,8 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
                     question: { type: GeminiType.STRING },
                     options: { type: GeminiType.ARRAY, items: { type: GeminiType.STRING } },
                     answer: { type: GeminiType.STRING },
-                    explanation: { type: GeminiType.STRING }
+                    explanation: { type: GeminiType.STRING },
+                    imageKeyword: { type: GeminiType.STRING, description: "Keyword for image search (e.g., 'lion', 'car')" }
                   },
                   required: ["question", "answer", "explanation"]
                 }
@@ -499,7 +517,9 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
     const currentGrade = formData.grade;
 
     const prompt = `สร้างคำถามเพิ่มจำนวน ${count} ข้อ ในหัวข้อ: "${topic}" สำหรับระดับชั้น ${currentGrade} โดยเป็นข้อสอบรูปแบบ: ${currentType}. 
-    เฉลยคำตอบในฟิลด์ answer และให้คำอธิบายใน explanation. ตอบเป็น JSON array ของ items เท่านั้น [{ "question": "...", "options": ["..."], "answer": "...", "explanation": "..." }]`;
+    เฉลยคำตอบในฟิลด์ answer และให้คำอธิบายใน explanation. 
+    ${formData.useVisuals ? 'สำคัญ: ให้ระบุ keyword ภาษาอังกฤษสั้นๆ (1-2 คำ) ในฟิลด์ "imageKeyword" สำหรับแสดงรูปภาพประกอบด้วย' : ''}
+    ตอบเป็น JSON array ของ items เท่านั้น [{ "question": "...", "options": ["..."], "answer": "...", "explanation": "..." ${formData.useVisuals ? ', "imageKeyword": "..."' : ''} }]`;
 
     try {
       const response = await ai.models.generateContent({
@@ -516,7 +536,8 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
                 question: { type: GeminiType.STRING },
                 options: { type: GeminiType.ARRAY, items: { type: GeminiType.STRING } },
                 answer: { type: GeminiType.STRING },
-                explanation: { type: GeminiType.STRING }
+                explanation: { type: GeminiType.STRING },
+                imageKeyword: { type: GeminiType.STRING }
               },
               required: ["question", "answer", "explanation"]
             }
@@ -820,6 +841,23 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
                   ))}
                 </div>
               </div>
+
+              {formData.type === 'matching' && formData.grade.startsWith('ป') && (
+                <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={formData.useVisuals}
+                      onChange={(e) => setFormData({...formData, useVisuals: e.target.checked})}
+                      className="w-5 h-5 rounded border-amber-300 text-amber-600 focus:ring-amber-500" 
+                    />
+                    <div>
+                      <span className="text-sm font-black text-amber-900 block tracking-tight">เพิ่มรูปภาพประกอบ</span>
+                      <span className="text-[11px] text-amber-700">เหมาะสำหรับเด็กประถม (AI จะช่วยหารูปที่เหมาะสมมาเพิ่มให้)</span>
+                    </div>
+                  </label>
+                </div>
+              )}
               
               <button 
                 onClick={handleGenerate} 

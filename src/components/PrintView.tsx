@@ -364,19 +364,42 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                         const sectionAnswers = isMatching ? chunk.map((it: any) => it.answer).sort((a: string, b: string) => a.localeCompare(b, 'th')) : [];
 
                         return (
-                          <div key={idx} className="display-block" style={{ marginBottom: '8mm' }}>
-                            <div className="flex gap-4 mb-4" style={{ fontSize: `${fontSettings.question + 1.5}pt` }}>
+                          <div key={idx} className="display-block" style={{ marginBottom: '10mm' }}>
+                            <div className={`flex gap-6 items-center ${isMatching ? 'mb-2' : 'mb-4'}`} style={{ fontSize: `${fontSettings.question + 1.5}pt` }}>
                               <span className="font-bold shrink-0">
-                                {isMatching ? <span className="mr-2">( &nbsp;&nbsp;&nbsp; )</span> : null}
+                                {isMatching ? <span className="mr-3">( &nbsp;&nbsp;&nbsp; )</span> : null}
                                 {globalIdxVal}.
                               </span>
-                              <div className="flex-1 flex justify-between items-start gap-8">
-                                <div className="font-bold leading-relaxed flex-1">{item.question}</div>
+                              
+                              <div className="flex-1 flex justify-between items-center gap-4">
+                                <div className="flex items-center gap-6 flex-1">
+                                  {isMatching && item.imageKeyword && (
+                                    <div className="w-[22mm] h-[22mm] shrink-0 border-[2px] border-black rounded-lg overflow-hidden bg-white shadow-sm">
+                                      <img 
+                                        src={`https://loremflickr.com/200/200/${encodeURIComponent(item.imageKeyword)}?lock=${idx}`} 
+                                        alt={item.imageKeyword}
+                                        className="w-full h-full object-cover"
+                                        referrerPolicy="no-referrer"
+                                      />
+                                    </div>
+                                  )}
+                                  <div className="font-bold leading-relaxed">{item.question}</div>
+                                </div>
+
                                 {isMatching && (
-                                  <div className="w-[45%] flex items-start gap-3 pl-6 border-l-[1.5px] border-slate-300">
-                                    <span className="font-bold shrink-0">{String.fromCharCode(3585 + idx)}.</span>
-                                    <span className="leading-tight">{sectionAnswers[idx]}</span>
-                                  </div>
+                                  <>
+                                    {/* Middle connector dots for drawing lines */}
+                                    <div className="flex items-center gap-1 opacity-40 mx-4">
+                                      <div className="w-2.5 h-2.5 bg-black rounded-full"></div>
+                                      <div className="w-16 h-[1.5px] border-t border-dashed border-black"></div>
+                                      <div className="w-2.5 h-2.5 bg-black rounded-full"></div>
+                                    </div>
+
+                                    <div className="w-[42%] flex items-start gap-4 pl-6 border-l-[2px] border-black py-2">
+                                      <span className="font-black shrink-0">{String.fromCharCode(3585 + idx)}.</span>
+                                      <span className="leading-tight font-bold">{sectionAnswers[idx]}</span>
+                                    </div>
+                                  </>
                                 )}
                               </div>
                             </div>
