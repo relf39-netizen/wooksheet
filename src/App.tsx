@@ -117,18 +117,18 @@ export default function App() {
               {/* Center Navigation Links */}
               <nav className="hidden md:flex items-center gap-2 bg-slate-50/80 p-1.5 rounded-[22px] border border-slate-200/60 backdrop-blur-sm">
                 <HeaderLink 
-                  active={currentPage === 'home' || currentPage === 'generate' || currentPage === 'admin'} 
+                  active={currentPage === 'home' || currentPage === 'generate'} 
                   onClick={() => navigateTo(user.role === 'admin' ? 'admin' : 'generate')} 
                   label={user.role === 'admin' ? 'อนุมัติสมาชิก' : 'สร้างแบบฝึกใหม่'} 
                 />
                 <HeaderLink 
-                  active={currentPage === 'history' || currentPage === 'admin_db'} 
+                  active={currentPage === 'history'} 
                   onClick={() => navigateTo(user.role === 'admin' ? 'admin_db' : 'history')} 
-                  label={user.role === 'admin' ? 'จัดการระบบ' : 'คลังแบบฝึก'} 
+                  label={user.role === 'admin' ? 'จัดการระบบ' : 'คลังแบบฝึกหัด'} 
                 />
                 <HeaderLink 
-                  active={currentPage === 'settings' || currentPage === 'profile'} 
-                  onClick={() => navigateTo('home')} // Link to profile if needed
+                  active={currentPage === 'profile'} 
+                  onClick={() => navigateTo('home')} 
                   label="ข้อมูลส่วนตัว" 
                 />
               </nav>

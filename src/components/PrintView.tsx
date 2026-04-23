@@ -208,6 +208,20 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             .grid { display: grid !important; }
             .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
             .bg-slate-50 { background-color: #f8fafc !important; }
+            .h-\[30mm\] { height: 30mm !important; }
+            .h-\[242mm\] { height: 242mm !important; }
+            .h-\[25mm\] { height: 25mm !important; }
+            .px-\[20mm\] { padding-left: 20mm !important; padding-right: 20mm !important; }
+            .py-4 { padding-top: 16px !important; padding-bottom: 16px !important; }
+            .pt-4 { padding-top: 16px !important; }
+            .pb-5 { padding-bottom: 20px !important; }
+            .text-\[14px\] { font-size: 14px !important; }
+            .text-\[11px\] { font-size: 11px !important; }
+            .text-\[10px\] { font-size: 10px !important; }
+            .text-\[11pt\] { font-size: 11pt !important; }
+            .text-\[10pt\] { font-size: 10pt !important; }
+            .border-t-\[3px\] { border-top: 3px solid black !important; }
+            .border-b-\[3px\] { border-bottom: 3px solid black !important; }
             .border-l-8 { border-left: 8px solid black !important; }
             .translate-y-2 { transform: translateY(8px) !important; }
             .border-dotted { border-style: dotted !important; }
