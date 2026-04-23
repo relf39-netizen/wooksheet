@@ -123,17 +123,41 @@ function ExerciseRender({
               <span className="shrink-0">{startIdx + idx}.</span>
               <div className="flex-1">
                 {editable ? (
-                  <textarea 
-                    className="w-full bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-indigo-200 rounded px-2 resize-none"
-                    value={item.question}
-                    onChange={(e) => onUpdateItem?.(idx, 'question', e.target.value)}
-                    placeholder="โจทย์คำถาม..."
-                    rows={1}
-                    onInput={(e: any) => {
-                      e.target.style.height = 'auto';
-                      e.target.style.height = e.target.scrollHeight + 'px';
-                    }}
-                  />
+                  <div className="space-y-4">
+                    <textarea 
+                      className="w-full bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-indigo-200 rounded px-2 resize-none"
+                      value={item.question}
+                      onChange={(e) => onUpdateItem?.(idx, 'question', e.target.value)}
+                      placeholder="โจทย์คำถาม..."
+                      rows={1}
+                      onInput={(e: any) => {
+                        e.target.style.height = 'auto';
+                        e.target.style.height = (e.target as any).scrollHeight + 'px';
+                      }}
+                    />
+                    {exerciseType === 'matching' && (
+                      <div className="flex flex-wrap gap-4 pt-2 no-print">
+                        <div className="flex-1 min-w-[200px] border-l-4 border-indigo-500 pl-4 bg-indigo-50/50 py-2 rounded-r-xl shadow-sm">
+                          <label className="text-[10px] font-black text-indigo-500 uppercase tracking-widest block mb-1">คำตอบที่ถูกต้อง (ฝั่งขวา)</label>
+                          <input 
+                            className="w-full bg-white border border-indigo-100 outline-none focus:ring-2 focus:ring-indigo-200 rounded-lg px-3 py-2 text-sm font-bold text-indigo-700"
+                            value={item.answer}
+                            onChange={(e) => onUpdateItem?.(idx, 'answer', e.target.value)}
+                            placeholder="ความหมาย หรือคำแปล..."
+                          />
+                        </div>
+                        <div className="w-[200px] border-l-4 border-amber-500 pl-4 bg-amber-50/50 py-2 rounded-r-xl shadow-sm">
+                          <label className="text-[10px] font-black text-amber-600 uppercase tracking-widest block mb-1">คำค้นหาภาพ (Image Keyword)</label>
+                          <input 
+                            className="w-full bg-white border border-amber-100 outline-none focus:ring-2 focus:ring-amber-200 rounded-lg px-3 py-2 text-xs font-medium"
+                            value={item.imageKeyword || ''}
+                            onChange={(e) => onUpdateItem?.(idx, 'imageKeyword', e.target.value)}
+                            placeholder="เช่น cat, dog, apple..."
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   exerciseType === 'matching' ? (
                     <div className="flex justify-between items-center gap-12 w-full border-b border-black pb-4 hover:bg-slate-50 transition-colors rounded-lg group/match">
