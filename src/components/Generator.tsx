@@ -743,116 +743,145 @@ export default function Generator({ user, onNavigate, exerciseId }: { user: User
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-8">
-        <div className="col-span-12 lg:col-span-4 flex flex-col gap-6 no-print">
-          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-2">
-              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${combinedResults.length > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'}`}>
-                {combinedResults.length} Sections
-              </span>
-            </div>
-            <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2"><span className="w-1 h-4 bg-indigo-500 rounded-full"></span>ตั้งค่าส่วนที่ {combinedResults.length + 1}</h3>
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <select value={formData.grade} onChange={(e) => setFormData({...formData, grade: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm">
-                  {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
-                <input list="subjects" value={formData.course} onChange={(e) => setFormData({...formData, course: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm" placeholder="วิชา" />
-                <datalist id="subjects">{CORE_SUBJECTS.map(s => <option key={s} value={s} />)}</datalist>
+      <div className="grid grid-cols-12 gap-8 h-[calc(100vh-160px)]">
+        {/* Left Sidebar: AI Settings Card */}
+        <div className="col-span-12 lg:col-span-4 h-full overflow-y-auto no-print custom-scrollbar pr-2">
+          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-8">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-50 flex items-center justify-center rounded-xl text-indigo-600">
+                <Sparkles size={20} />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">หัวข้อ/เนื้อหาที่ต้องการเน้น</label>
+              <h3 className="font-bold text-lg text-slate-900">AI Settings</h3>
+            </div>
+
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 ml-1">หัวข้อเรื่อง</label>
                 <textarea 
                   value={formData.topic} 
                   onChange={(e) => setFormData({...formData, topic: e.target.value})} 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm h-24 resize-none" 
-                  placeholder="เช่น มาตราตัวสะกดแม่กกา, การบวกเลขไม่เกิน 100" 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm h-32 resize-none focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none transition-all" 
+                  placeholder="เช่น การบวกเลขไม่เกิน 100" 
                 />
               </div>
-              <div className="flex gap-4">
-                <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value as ExerciseType})} className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm">
-                  {EXERCISE_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 ml-1">วิชา / ระดับชั้น</label>
+                  <input 
+                    list="subjects" 
+                    value={formData.course} 
+                    onChange={(e) => setFormData({...formData, course: e.target.value})} 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none transition-all" 
+                    placeholder="วิชา" 
+                  />
+                  <datalist id="subjects">{CORE_SUBJECTS.map(s => <option key={s} value={s} />)}</datalist>
+                </div>
+                <div className="space-y-2 pt-6">
+                  <select 
+                    value={formData.grade} 
+                    onChange={(e) => setFormData({...formData, grade: e.target.value})} 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none transition-all appearance-none"
+                  >
+                    {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 ml-1">ความยาก</label>
+                <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none transition-all appearance-none">
+                  <option>ง่าย</option>
+                  <option selected>ปานกลาง</option>
+                  <option>ยาก</option>
                 </select>
-                <div className="flex flex-col items-center">
-                  <span className="text-[9px] font-bold text-slate-400 mb-1">จำนวนข้อ</span>
-                  <input type="number" min="1" max="20" value={formData.count} onChange={(e) => setFormData({...formData, count: parseInt(e.target.value)})} className="w-16 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-center text-sm" />
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-xs font-bold text-slate-500 ml-1 block">ประเภทโจทย์ (เลือกหลายรายการได้)</label>
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 h-48 overflow-y-auto custom-scrollbar space-y-2">
+                  {EXERCISE_TYPES.map(t => (
+                    <label key={t.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.type === t.id}
+                        onChange={() => setFormData({...formData, type: t.id as ExerciseType})}
+                        className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" 
+                      />
+                      <span className="text-sm text-slate-700">{t.label}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
               
               <button 
                 onClick={handleGenerate} 
                 disabled={generating} 
-                className={`w-full text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest disabled:opacity-50 transition-all ${combinedResults.length > 0 ? 'bg-amber-600 hover:bg-amber-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                className={`w-full text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-indigo-200 disabled:opacity-50 transition-all active:scale-95 ${combinedResults.length > 0 ? 'bg-indigo-500' : 'bg-indigo-600 hover:bg-indigo-700'}`}
               >
-                {generating ? <Loader2 className="animate-spin" size={20} /> : combinedResults.length > 0 ? <Plus size={20} /> : <Wand2 size={20} />}
-                <span>{generating ? 'กำลังสร้าง...' : combinedResults.length > 0 ? `เพิ่มส่วนที่ ${combinedResults.length + 1}` : 'สร้างใบงานแรก'}</span>
+                {generating ? <Loader2 className="animate-spin" size={22} /> : <Sparkles size={22} />}
+                <span className="text-lg">สร้างใบงานด้วย AI</span>
               </button>
 
-              {/* AI Appender Card - Sidebar */}
+              {/* AI Appender - Replaced with a simpler button / interaction if needed, keeping it as is but styled */}
               {(result || combinedResults.length > 0) && (
-                <div className="bg-white p-6 rounded-2xl border-2 border-indigo-500 shadow-xl mt-4 animate-in slide-in-from-left-4 duration-300">
-                  <h4 className="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
-                    <Sparkles size={16} className="animate-pulse" /> ผู้ช่วย AI: เพิ่มโจทย์ให้ส่วนปัจจุบัน
+                <div className="bg-indigo-50 rounded-2xl p-6 border border-indigo-100">
+                  <h4 className="text-xs font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
+                    ปรับจูนโจทย์เพิ่มเติม
                   </h4>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">ระบุหัวข้อที่ต้องการเพิ่ม</label>
-                      <input 
-                        className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 transition-all"
-                        placeholder="เช่น แม่กวง, การหารเลข..."
-                        value={appenderTopic}
-                        onChange={(e) => setAppenderTopic(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && !isAppenderGenerating && handleAppenderSubmit()}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">จำนวน {appenderCount} ข้อ</span>
-                      </div>
-                      <input 
-                        type="range" min="1" max="20" step="1" 
-                        value={appenderCount} 
-                        onChange={(e) => setAppenderCount(parseInt(e.target.value))}
-                        className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                      />
-                    </div>
-                    <button 
-                      onClick={handleAppenderSubmit}
-                      disabled={isAppenderGenerating}
-                      className="w-full py-3 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase hover:bg-indigo-700 shadow-md disabled:opacity-50 flex items-center justify-center gap-2 transition-all"
-                    >
-                      {isAppenderGenerating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
-                      {isAppenderGenerating ? 'กำลังสร้างโจทย์...' : 'สร้างเพิ่มให้ใบงานนี้'}
-                    </button>
-                  </div>
+                  <input 
+                    className="w-full bg-white border border-indigo-100 rounded-xl px-4 py-3 text-sm mb-4 outline-none focus:ring-2 focus:ring-indigo-200"
+                    placeholder="สั่งเพิ่มโจทย์..."
+                    value={appenderTopic}
+                    onChange={(e) => setAppenderTopic(e.target.value)}
+                  />
+                  <button 
+                    onClick={handleAppenderSubmit}
+                    disabled={isAppenderGenerating}
+                    className="w-full py-3 bg-white text-indigo-600 rounded-xl text-xs font-bold uppercase hover:bg-indigo-600 hover:text-white border border-indigo-200 transition-all"
+                  >
+                    {isAppenderGenerating ? 'กำลังสร้าง...' : 'สร้างเพิ่ม'}
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        <div className="col-span-12 lg:col-span-8 flex flex-col">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 h-full flex flex-col overflow-hidden">
-            <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">Document Preview</span>
-              <div className="flex gap-2">
-                <button onClick={handleSave} disabled={saving} className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-xs font-black uppercase hover:bg-indigo-700 shadow-md transition-all">
-                  {saving ? 'กำลังบันทึก...' : 'บันทึก & ไปหน้าเครื่องพิมพ์'}
-                </button>
-              </div>
+        {/* Right Main Content: Document Preview Card */}
+        <div className="col-span-12 lg:col-span-8 h-full">
+          <div className="bg-white rounded-[32px] border border-slate-200 h-full flex flex-col overflow-hidden shadow-sm relative">
+            <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-white absolute top-0 left-0 right-0 z-10 no-print">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-2">Document View</span>
+              { (result || combinedResults.length > 0) && (
+                <div className="flex gap-3">
+                  <button onClick={handleSave} disabled={saving} className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase hover:bg-indigo-700 transition-all shadow-md">
+                    {saving ? 'กำลังบันทึก...' : 'บันทึก & สั่งพิมพ์'}
+                  </button>
+                </div>
+              )}
             </div>
-            <div className="flex-1 p-8 bg-slate-100 overflow-y-auto flex justify-center">
-              <div className="flex flex-col gap-4 print-root-container">
-                {result && (
-                  <div className="flex justify-center gap-2 mb-4 no-print grow-0">
-                    <button onClick={handleAddSection} className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2">
-                      <Layers size={14} /> เพิ่มเป็นส่วนถัดไป
+            
+            <div className="flex-1 overflow-y-auto p-12 pt-24 bg-slate-50 flex flex-col items-center custom-scrollbar">
+              {(result || combinedResults.length > 0) ? (
+                <div className="flex flex-col gap-4 print-root-container">
+                  <div className="flex justify-center gap-2 mb-8 no-print shrink-0">
+                    <button onClick={handleAddSection} className="bg-white text-indigo-600 px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase border border-indigo-100 hover:bg-indigo-50 transition-all flex items-center gap-2 shadow-sm">
+                      <Plus size={14} /> เพิ่มส่วนใหม่
                     </button>
-                    <button onClick={handleClear} className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-red-100 hover:bg-red-600 hover:text-white transition-all">ล้างข้อมูล</button>
+                    <button onClick={handleClear} className="bg-white text-red-500 px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase border border-red-100 hover:bg-red-50 transition-all shadow-sm">ล้างหน้าเอกสาร</button>
                   </div>
-                )}
-                {printArea()}
-              </div>
+                  {printArea()}
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-12">
+                   <div className="w-24 h-24 bg-white rounded-3xl shadow-sm border border-slate-100 flex items-center justify-center mb-6">
+                      <FileText size={40} className="text-slate-200" />
+                   </div>
+                   <h3 className="text-xl font-bold text-slate-300 tracking-tight mb-2">ยังไม่มีใบงาน</h3>
+                   <p className="text-sm text-slate-400 max-w-xs">กรุณาใช้ AI Generate ด้านซ้ายมือเพื่อเริ่มสร้างเนื้อหาใบงานของคุณครูครับ</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
