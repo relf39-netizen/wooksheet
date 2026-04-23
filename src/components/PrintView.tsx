@@ -147,60 +147,72 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
             }
 
             /* Utilities for tailwind classes in the mapped HTML */
-            .flex { display: flex; }
-            .flex-col { flex-direction: column; }
-            .justify-end { justify-content: flex-end; }
-            .justify-between { justify-content: space-between; }
-            .justify-center { justify-content: center; }
-            .items-center { align-items: center; }
-            .items-end { align-items: flex-end; }
-            .items-start { align-items: flex-start; }
-            .gap-2 { gap: 8px; }
-            .gap-3 { gap: 12px; }
-            .gap-4 { gap: 16px; }
-            .gap-6 { gap: 24px; }
-            .gap-x-8 { column-gap: 32px; }
-            .gap-x-12 { column-gap: 48px; }
-            .gap-y-4 { row-gap: 16px; }
-            .flex-1 { flex: 1 1 0%; }
-            .shrink-0 { flex-shrink: 0; }
-            .w-full { width: 100%; }
-            .h-full { height: 100%; }
-            .text-center { text-align: center; }
-            .text-left { text-align: left; }
-            .text-right { text-align: right; }
-            .font-bold { font-weight: 700; }
-            .font-black { font-weight: 900; }
-            .font-extrabold { font-weight: 800; }
-            .italic { font-style: italic; }
-            .underline { text-decoration: underline; }
-            .border-t-2 { border-top-width: 2px; }
-            .border-b-2 { border-bottom-width: 2px; }
-            .border-black { border-color: black; }
-            .mb-1 { margin-bottom: 4px; }
-            .mb-4 { margin-bottom: 16px; }
-            .mb-5 { margin-bottom: 20px; }
-            .mb-6 { margin-bottom: 24px; }
-            .mb-8 { margin-bottom: 32px; }
-            .mt-8 { margin-top: 32px; }
-            .ml-10 { margin-left: 40px; }
-            .pb-1 { padding-bottom: 4px; }
-            .pb-4 { padding-bottom: 16px; }
-            .pr-4 { padding-right: 16px; }
-            .pr-1 { padding-right: 4px; }
-            .grid { display: grid; }
-            .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .bg-slate-50 { background-color: #f8fafc !important; }
-            .border-l-8 { border-left-width: 8px !important; }
-            .translate-y-2 { transform: translateY(8px); }
-            .border-dotted { border-style: dotted !important; }
-            .border-b { border-bottom-width: 1px !important; }
+            .flex { display: flex !important; }
+            .flex-col { flex-direction: column !important; }
+            .flex-row { flex-direction: row !important; }
+            .justify-end { justify-content: flex-end !important; }
+            .justify-between { justify-content: space-between !important; }
+            .justify-center { justify-content: center !important; }
+            .items-center { align-items: center !important; }
+            .items-end { align-items: flex-end !important; }
+            .items-start { align-items: flex-start !important; }
+            .items-stretch { align-items: stretch !important; }
+            .gap-2 { gap: 8px !important; }
+            .gap-3 { gap: 12px !important; }
+            .gap-4 { gap: 16px !important; }
+            .gap-6 { gap: 24px !important; }
+            .gap-8 { gap: 32px !important; }
+            .gap-x-8 { column-gap: 32px !important; }
+            .gap-x-12 { column-gap: 48px !important; }
+            .gap-y-4 { row-gap: 16px !important; }
+            .flex-1 { flex: 1 1 0% !important; min-width: 0 !important; }
+            .shrink-0 { flex-shrink: 0 !important; }
+            .w-full { width: 100% !important; }
+            .h-full { height: 100% !important; }
+            .min-w-0 { min-width: 0 !important; }
+            .text-center { text-align: center !important; }
+            .text-left { text-align: left !important; }
+            .text-right { text-align: right !important; }
+            .font-bold { font-weight: 700 !important; }
+            .font-black { font-weight: 900 !important; }
+            .font-extrabold { font-weight: 800 !important; }
+            .italic { font-style: italic !important; }
             .not-italic { font-style: normal !important; }
-            .min-w-0 { min-width: 0; }
-            .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-            /* Ensure lines in student info are visible */
-            .dotted-line { border-bottom: 2px dotted black !important; height: 1px; transform: translateY(10px); flex: 1; }
+            .underline { text-decoration: underline !important; }
+            .border-t-2 { border-top: 2px solid black !important; }
+            .border-b-2 { border-bottom: 2px solid black !important; }
+            .border-b-4 { border-bottom: 4px solid black !important; }
+            .border-b { border-bottom: 1px solid black !important; }
+            .border-b-\[3px\] { border-bottom: 3px solid black !important; }
+            .border-l-2 { border-left: 2px solid black !important; }
+            .border-black { border-color: black !important; }
+            .border-2 { border: 2px solid black !important; }
+            .rounded-full { border-radius: 9999px !important; }
+            .mb-1 { margin-bottom: 4px !important; }
+            .mb-4 { margin-bottom: 16px !important; }
+            .mb-5 { margin-bottom: 20px !important; }
+            .mb-6 { margin-bottom: 24px !important; }
+            .mb-8 { margin-bottom: 32px !important; }
+            .mb-10 { margin-bottom: 40px !important; }
+            .mt-1 { margin-top: 4px !important; }
+            .mt-4 { margin-top: 16px !important; }
+            .mt-8 { margin-top: 32px !important; }
+            .ml-10 { margin-left: 40px !important; }
+            .pb-1 { padding-bottom: 4px !important; }
+            .pb-4 { padding-bottom: 16px !important; }
+            .pb-5 { padding-bottom: 20px !important; }
+            .pr-1 { padding-right: 4px !important; }
+            .pr-4 { padding-right: 16px !important; }
+            .pr-6 { padding-right: 24px !important; }
+            .pl-6 { padding-left: 24px !important; }
+            .grid { display: grid !important; }
+            .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+            .bg-slate-50 { background-color: #f8fafc !important; }
+            .border-l-8 { border-left: 8px solid black !important; }
+            .translate-y-2 { transform: translateY(8px) !important; }
+            .border-dotted { border-style: dotted !important; }
+            .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap !important; }
+            .dotted-line { border-bottom: 2px dotted black !important; height: 1px !important; transform: translateY(10px) !important; flex: 1 !important; }
             .border-l-2 { border-left-width: 2px !important; }
             .pl-6 { padding-left: 24px !important; }
             .pr-6 { padding-right: 24px !important; }
@@ -216,10 +228,12 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
     `);
 
     printWindow.document.close();
-    printWindow.focus();
+    
+    // Ensure styles are applied before printing
     setTimeout(() => {
+      printWindow.focus();
       printWindow.print();
-    }, 1000);
+    }, 2000);
   };
 
   if (loading) return <div className="text-center py-20">กำลังจัดเตรียมไฟล์...</div>;
@@ -330,7 +344,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                   <div className="h-[242mm] px-[20mm] py-4 flex flex-col overflow-hidden text-left">
                     {pageIdx === 0 && (
                       <>
-                        <div className="border-b-[3px] border-black pb-5 mb-10 text-[16pt] font-black flex items-stretch">
+                        <div className="border-b-[3px] border-black pb-5 mb-10 text-[16pt] font-black flex items-stretch w-full">
                           <div className="flex items-center gap-3 flex-1 min-w-0 pr-6">
                             <span className="shrink-0">ชื่อ-นามสกุล:</span>
                             <div className="dotted-line"></div>
@@ -374,7 +388,7 @@ export default function PrintView({ user, exerciseId, onNavigate }: { user: User
                               <div className="grid grid-cols-2 gap-x-12 gap-y-4 ml-10 text-slate-900 text-left">
                                 {item.options.map((opt: string, oIdx: number) => (
                                   <div key={oIdx} className="flex items-start gap-3" style={{ fontSize: `${fontSettings.option + 1.5}pt` }}>
-                                    <div className="rounded-full border-2 border-black flex items-center justify-center font-black shrink-0 mt-1" style={{ width: '24px', height: '24px', fontSize: '11pt' }}>
+                                    <div className="opt-circle">
                                       {String.fromCharCode(65 + oIdx)}
                                     </div>
                                     <span className="leading-tight">{opt}</span>
