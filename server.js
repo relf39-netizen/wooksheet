@@ -239,14 +239,38 @@ async function startServer() {
       } catch (e) {}
 
       await pool.execute(`
-        CREATE TABLE IF NOT EXISTS exercises (
+        CREATE TABLE IF NOT EXISTS subjects (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(200) NOT NULL,
+          code VARCHAR(50),
+          weekly_hours INT NOT NULL,
+          color VARCHAR(20)
+        )
+      `);
+
+      await pool.execute(`
+        CREATE TABLE IF NOT EXISTS classes (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(100) NOT NULL,
+          level VARCHAR(50),
+          room_id INT
+        )
+      `);
+
+      await pool.execute(`
+        CREATE TABLE IF NOT EXISTS rooms (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(100) NOT NULL,
+          type VARCHAR(50)
+        )
+      `);
+
+      await pool.execute(`
+        CREATE TABLE IF NOT EXISTS timetables (
           id INT AUTO_INCREMENT PRIMARY KEY,
           teacher_id INT NOT NULL,
           title VARCHAR(255) NOT NULL,
-          course VARCHAR(100),
-          grade VARCHAR(50),
-          indicators TEXT,
-          content LONGTEXT NOT NULL,
+          data LONGTEXT NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (teacher_id) REFERENCES teachers(id)
         )
@@ -261,22 +285,22 @@ async function startServer() {
     }
   });
 
-  // Exercise Routes
-  app.get('/api/exercises', async (req, res) => {
+  // Timetable Routes
+  app.get('/api/timetables', async (req, res) => {
     const user = req.session?.user;
     if (!user) return res.status(401).send();
     try {
-      const [rows] = await pool.execute('SELECT * FROM exercises WHERE teacher_id = ? ORDER BY created_at DESC', [user.id]);
+      const [rows] = await pool.execute('SELECT * FROM timetables WHERE teacher_id = ? ORDER BY created_at DESC', [user.id]);
       res.json(rows);
     } catch (error) { res.status(500).send(); }
   });
 
-  app.get('/api/exercises/:id', async (req, res) => {
+  app.get('/api/timetables/:id', async (req, res) => {
     const user = req.session?.user;
     if (!user) return res.status(401).send();
     const { id } = req.params;
     try {
-      const [rows] = await pool.execute('SELECT * FROM exercises WHERE id = ? AND teacher_id = ?', [id, user.id]);
+      const [rows] = await pool.execute('SELECT * FROM timetables WHERE id = ? AND teacher_id = ?', [id, user.id]);
       if (rows[0]) {
         res.json(rows[0]);
       } else {
@@ -285,39 +309,25 @@ async function startServer() {
     } catch (error) { res.status(500).send(); }
   });
 
-  app.post('/api/exercises', async (req, res) => {
+  app.post('/api/timetables', async (req, res) => {
     const user = req.session?.user;
     if (!user) return res.status(401).send();
-    const { title, course, grade, indicators, content } = req.body;
+    const { title, data } = req.body;
     try {
       const [result] = await pool.execute(
-        'INSERT INTO exercises (teacher_id, title, course, grade, indicators, content) VALUES (?, ?, ?, ?, ?, ?)',
-        [user.id, title, course, grade, indicators, JSON.stringify(content)]
+        'INSERT INTO timetables (teacher_id, title, data) VALUES (?, ?, ?)',
+        [user.id, title, JSON.stringify(data)]
       );
       res.json({ success: true, id: result.insertId });
     } catch (error) { res.status(500).send(); }
   });
 
-  app.post('/api/exercises/:id/update', async (req, res) => {
-    const user = req.session?.user;
-    if (!user) return res.status(401).send();
-    const { id } = req.params;
-    const { title, course, grade, indicators, content } = req.body;
-    try {
-      await pool.execute(
-        'UPDATE exercises SET title = ?, course = ?, grade = ?, indicators = ?, content = ? WHERE id = ? AND teacher_id = ?',
-        [title, course, grade, indicators, JSON.stringify(content), id, user.id]
-      );
-      res.json({ success: true });
-    } catch (error) { res.status(500).send(); }
-  });
-
-  app.post('/api/exercises/:id/delete', async (req, res) => {
+  app.post('/api/timetables/:id/delete', async (req, res) => {
     const user = req.session?.user;
     if (!user) return res.status(401).send();
     const { id } = req.params;
     try {
-      await pool.execute('DELETE FROM exercises WHERE id = ? AND teacher_id = ?', [id, user.id]);
+      await pool.execute('DELETE FROM timetables WHERE id = ? AND teacher_id = ?', [id, user.id]);
       res.json({ success: true });
     } catch (error) { res.status(500).send(); }
   });

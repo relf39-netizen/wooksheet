@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Key, PlusCircle, History, UserCheck, AlertCircle, FileText, ChevronRight } from 'lucide-react';
-import { User, Exercise } from '../types';
+import { Key, PlusCircle, History, UserCheck, AlertCircle, FileText, ChevronRight, Calendar, Users, BookOpen, Warehouse } from 'lucide-react';
+import { User } from '../types';
 
 export default function TeacherDashboard({ user, onNavigate, onUserUpdate }: { user: User, onNavigate: (page: string, param?: string) => void, onUserUpdate: (updatedUser: User) => void }) {
   const [aiKey, setAiKey] = useState(user.ai_key || '');
   const [updating, setUpdating] = useState(false);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [stats, setStats] = useState({ teachers: 0, subjects: 0, rooms: 0, classes: 0 });
 
   useEffect(() => {
-    const apiBase = '/server.cjs';
-    fetch(`${apiBase}/api/exercises`)
-      .then(res => res.json())
-      .then(data => setExercises(data))
-      .catch(console.error);
+    // In a real app, we would fetch stats from the backend
+    setStats({
+      teachers: 12,
+      subjects: 25,
+      rooms: 8,
+      classes: 6
+    });
   }, []);
 
   const handleUpdateKey = async () => {
@@ -41,26 +43,26 @@ export default function TeacherDashboard({ user, onNavigate, onUserUpdate }: { u
           <header className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
             <div>
-              <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 block">ยินดีต้อนรับกลับมา</span>
-              <h1 className="text-3xl font-bold text-slate-900 mb-1">คุณครู {user.name}</h1>
-              <p className="text-slate-500 text-sm">จัดการข้อมูลและเครื่องมือสร้างสื่อการเรียนรู้ของคุณที่นี่</p>
+              <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 block">แดชบอร์ดจัดการตารางสอน</span>
+              <h1 className="text-3xl font-bold text-slate-900 mb-1">สวัสดีครับคุณครู {user.name}</h1>
+              <p className="text-slate-500 text-sm">ยินดีต้อนรับสู่ระบบจัดตารางสอนอัตโนมัติ SmartSchedule AI</p>
             </div>
           </header>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <ActionCard 
-              title="สร้างแบบฝึกหัดใหม่" 
-              desc="ใช้ AI ช่วยวิเคราะห์และสร้างแบบฝึกหัดตามหลักสูตร"
-              icon={<PlusCircle size={28} />}
+              title="จัดตารางสอนใหม่" 
+              desc="ใช้ระบบอัตโนมัติคำนวณคาบเรียนและคัดกรองความซ้ำซ้อน"
+              icon={<Calendar size={28} />}
               color="bg-indigo-600 shadow-indigo-100"
-              onClick={() => onNavigate('generate')}
+              onClick={() => onNavigate('generator')}
             />
             <ActionCard 
-              title="คลังแบบฝึกหัด" 
-              desc="เรียกดูหรือพิมพ์งานที่เคยสร้างไว้"
-              icon={<History size={28} />}
+              title="ข้อมูลพื้นฐาน" 
+              desc="จัดการรายชื่อครู วิชา ห้องเรียน และชั้นเรียน"
+              icon={<Warehouse size={28} />}
               color="bg-slate-900 shadow-slate-200"
-              onClick={() => onNavigate('history')}
+              onClick={() => onNavigate('resources')}
             />
           </div>
 
@@ -68,32 +70,36 @@ export default function TeacherDashboard({ user, onNavigate, onUserUpdate }: { u
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-bold text-slate-900 flex items-center gap-2">
                 <span className="w-1 h-4 bg-indigo-500 rounded-full"></span>
-                แบบฝึกหัดล่าสุด
+                สรุปทรัพยากรที่มีอยู่
               </h3>
-              <button onClick={() => onNavigate('history')} className="text-xs font-bold text-indigo-600 hover:underline uppercase tracking-tight">ดูทั้งหมด</button>
             </div>
             
-            {exercises.length === 0 ? (
-              <div className="bg-white border border-dashed border-slate-200 p-12 rounded-2xl text-center">
-                <FileText className="mx-auto text-slate-200 mb-4" size={40} />
-                <p className="text-slate-400 text-sm font-medium">ยังไม่พบข้อมูลแบบฝึกหัดที่คุณสร้าง</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {exercises.slice(0, 4).map((ex) => (
-                  <div key={ex.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group" onClick={() => onNavigate('print', String(ex.id))}>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="p-2 bg-slate-50 rounded-lg text-slate-400 group-hover:text-indigo-600 transition-colors">
-                        <FileText size={20} />
-                      </div>
-                      <span className="text-[10px] font-black px-2 py-0.5 bg-slate-100 rounded text-slate-500 border border-slate-200 uppercase tracking-tight">{ex.grade}</span>
-                    </div>
-                    <h4 className="font-bold text-slate-900 mb-1 truncate text-base">{ex.title}</h4>
-                    <p className="text-[10px] uppercase text-indigo-500 font-bold tracking-widest">{ex.course}</p>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <StatCard label="ครูทั้งหมด" value={stats.teachers} icon={<Users className="text-blue-500" />} />
+              <StatCard label="รายวิชา" value={stats.subjects} icon={<BookOpen className="text-emerald-500" />} />
+              <StatCard label="ห้องเรียน" value={stats.rooms} icon={<Warehouse className="text-amber-500" />} />
+              <StatCard label="กลุ่มเรียน" value={stats.classes} icon={<History className="text-purple-500" />} />
+            </div>
+          </section>
+
+          <section className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+             <div className="flex items-start gap-4">
+                <div className="p-3 bg-amber-50 rounded-xl text-amber-600 shrink-0">
+                  <AlertCircle size={24} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 mb-1 text-lg">คำแนะนำการใช้งาน</h4>
+                  <p className="text-slate-500 text-sm leading-relaxed mb-4">
+                    ก่อนเริ่มจัดตารางสอนอัตโนมัติ กรุณาตรวจสอบให้มั่นใจว่าข้อมูลรายชื่อครู รายวิชา และชั้นเรียนได้รับการบันทึกครบถ้วนสมบูรณ์ เพื่อความแม่นยำในการคำนวณของระบบ
+                  </p>
+                  <button 
+                    onClick={() => onNavigate('resources')}
+                    className="text-xs font-black text-indigo-600 uppercase tracking-widest hover:underline"
+                  >
+                    ไปที่การจัดการข้อมูลพื้นฐาน →
+                  </button>
+                </div>
+             </div>
           </section>
         </div>
 
@@ -107,25 +113,10 @@ export default function TeacherDashboard({ user, onNavigate, onUserUpdate }: { u
             </div>
             
             <p className="text-xs text-slate-400 mb-2 leading-relaxed">
-              ใส่ API Key เพื่อใช้ระบบอัตโนมัติ ข้อมูลนี้จะถูกเก็บเป็นความลับเฉพาะคุณ
+              สแกนข้อมูลและจัดตารางด้วย Gemini AI ประสิทธิภาพสูง
             </p>
             
-            <div className="mb-6">
-              <a 
-                href="https://aistudio.google.com/app/apikey" 
-                target="_blank" 
-                rel="noreferrer"
-                className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold underline flex items-center gap-1"
-              >
-                วิธีรับ API Key ฟรีจาก Google AI Studio
-                <ChevronRight size={12} />
-              </a>
-              <p className="text-[10px] text-slate-500 mt-2 italic leading-tight">
-                * คู่มือ: ล็อกอินด้วย Gmail → กดปุ่ม "Create API key" → คัดลอกรหัสที่ขึ้นต้นด้วย 'AIz...' มาวางด้านล่าง
-              </p>
-            </div>
-
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4">
               <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
                 <label className="text-[10px] text-slate-500 font-bold uppercase mb-2 block tracking-widest">GEMINI API KEY</label>
                 <input 
@@ -146,17 +137,17 @@ export default function TeacherDashboard({ user, onNavigate, onUserUpdate }: { u
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">สถิติระบบ</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <div className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-tight">แบบฝึกที่บันทึก</div>
-                <div className="text-2xl font-bold">{exercises.length}</div>
-              </div>
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <div className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-tight">สถานะบัญชี</div>
-                <div className="text-xs font-bold text-green-600 uppercase">ปกติ</div>
-              </div>
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-125 transition-transform">
+              <Calendar size={120} />
+            </div>
+            <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">ตารางสอนล่าสุด</h4>
+            <div className="space-y-3">
+               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+                  <div className="text-xs font-bold text-slate-700 truncate mr-2">ตารางเรียน ภาคเรียนที่ 1/2567</div>
+                  <ChevronRight size={14} className="text-slate-300" />
+               </div>
+               <p className="text-[10px] text-slate-400 text-center italic">ไม่พบตารางสอนอื่นๆ ที่บันทึกไว้</p>
             </div>
           </div>
         </div>
@@ -169,11 +160,25 @@ function ActionCard({ title, desc, icon, color, onClick }: any) {
   return (
     <button 
       onClick={onClick}
-      className={`${color} text-white p-8 rounded-2xl shadow-lg transition-all hover:-translate-y-1 active:scale-95 text-left group`}
+      className={`${color} text-white p-8 rounded-2xl shadow-lg transition-all hover:-translate-y-1 active:scale-95 text-left group min-h-[220px] flex flex-col justify-end`}
     >
-      <div className="mb-8 group-hover:scale-110 transition-transform bg-white/10 w-fit p-3 rounded-xl">{icon}</div>
-      <h3 className="text-xl font-bold mb-2 uppercase tracking-wide">{title}</h3>
-      <p className="text-white/60 text-xs">{desc}</p>
+      <div className="mb-auto group-hover:scale-110 transition-transform bg-white/10 w-fit p-3 rounded-xl">{icon}</div>
+      <div>
+        <h3 className="text-xl font-bold mb-2 uppercase tracking-wide">{title}</h3>
+        <p className="text-white/60 text-xs leading-relaxed">{desc}</p>
+      </div>
     </button>
+  );
+}
+
+function StatCard({ label, value, icon }: { label: string, value: number, icon: any }) {
+  return (
+    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-200 transition-all">
+      <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center mb-3">
+        {icon}
+      </div>
+      <div className="text-[10px] text-slate-400 font-black uppercase tracking-tight mb-1">{label}</div>
+      <div className="text-2xl font-black text-slate-900">{value}</div>
+    </div>
   );
 }

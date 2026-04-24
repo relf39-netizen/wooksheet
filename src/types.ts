@@ -19,18 +19,41 @@ export interface Teacher {
   role: 'teacher' | 'admin';
   login_count?: number;
   last_login?: string;
-  exercise_count?: number;
+  subjects?: string[]; // IDs of subjects they can teach
 }
 
-export interface Exercise {
-  id: number;
-  teacher_id: number;
-  title: string;
-  course: string;
-  grade: string;
-  indicators: string;
-  content: string; // JSON string
-  created_at: string;
+export interface Subject {
+  id: string;
+  name: string;
+  code: string;
+  weeklyHours: number;
+  color?: string;
+  suitableTeachers: number[]; // Teacher IDs
 }
 
-export type ExerciseType = 'multiple_choice' | 'subjective' | 'matching' | 'fill_blank' | 'essay' | 'image_sentence';
+export interface ClassGrade {
+  id: string;
+  level: string; // e.g., Grade 1
+  room: string;  // e.g., Room 101 or 1/1
+  studentCount?: number;
+}
+
+export interface Room {
+  id: string;
+  name: string;
+  capacity?: number;
+  type?: 'regular' | 'lab' | 'sport';
+}
+
+export interface ScheduleSlot {
+  day: number; // 0=Monday, 4=Friday
+  period: number; // 1-8
+  subjectId: string;
+  teacherId: number;
+  roomId?: string;
+}
+
+export interface ClassSchedule {
+  classId: string;
+  slots: ScheduleSlot[];
+}

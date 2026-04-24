@@ -14,14 +14,14 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { User } from './types';
 
-// Components (We will create these next)
+// Components
 import Login from './components/Login';
 import Register from './components/Register';
 import TeacherDashboard from './components/TeacherDashboard';
 import AdminDashboard from './components/AdminDashboard';
-import Generator from './components/Generator';
-import ExerciseList from './components/ExerciseList';
-import PrintView from './components/PrintView';
+import ResourceManager from './components/ResourceManager';
+import TimetableGenerator from './components/TimetableGenerator';
+import ScheduleHistory from './components/ScheduleHistory';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -84,9 +84,9 @@ export default function App() {
     }
 
     switch (currentPage) {
-    case 'generate': return <Generator user={user} onNavigate={navigateTo} exerciseId={activeParam} />;
-    case 'history': return <ExerciseList onNavigate={navigateTo} />;
-      case 'print': return <PrintView user={user} exerciseId={activeParam} onNavigate={navigateTo} />;
+      case 'resources': return <ResourceManager onNavigate={navigateTo} />;
+      case 'generator': return <TimetableGenerator onNavigate={navigateTo} />;
+      case 'schedules': return <ScheduleHistory onNavigate={navigateTo} />;
       default: return <TeacherDashboard user={user} onNavigate={navigateTo} onUserUpdate={onUserUpdate} />;
     }
   };
@@ -108,28 +108,28 @@ export default function App() {
                   className="flex items-center gap-3 cursor-pointer group"
                 >
                   <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:scale-105 transition-transform">
-                    <BookOpen size={22} className="text-white" />
+                    <Database size={22} className="text-white" />
                   </div>
-                  <h1 className="font-bold text-xl text-indigo-900 tracking-tight">AI <span className="text-indigo-600">EduGenerator</span></h1>
+                  <h1 className="font-bold text-xl text-indigo-900 tracking-tight">Smart<span className="text-indigo-600">Schedule</span></h1>
                 </div>
               </div>
 
               {/* Center Navigation Links */}
               <nav className="hidden md:flex items-center gap-2 bg-slate-50/80 p-1.5 rounded-[22px] border border-slate-200/60 backdrop-blur-sm">
                 <HeaderLink 
-                  active={currentPage === 'generate'} 
-                  onClick={() => navigateTo(user.role === 'admin' ? 'admin' : 'generate')} 
-                  label={user.role === 'admin' ? 'อนุมัติสมาชิก' : 'สร้างแบบฝึกใหม่'} 
+                  active={currentPage === 'resources'} 
+                  onClick={() => navigateTo(user.role === 'admin' ? 'admin' : 'resources')} 
+                  label={user.role === 'admin' ? 'อนุมัติสมาชิก' : 'จัดการข้อมูลพื้นฐาน'} 
                 />
                 <HeaderLink 
-                  active={currentPage === 'history'} 
-                  onClick={() => navigateTo(user.role === 'admin' ? 'admin_db' : 'history')} 
-                  label={user.role === 'admin' ? 'จัดการระบบ' : 'คลังแบบฝึกหัด'} 
+                  active={currentPage === 'generator'} 
+                  onClick={() => navigateTo(user.role === 'admin' ? 'admin_db' : 'generator')} 
+                  label={user.role === 'admin' ? 'จัดการระบบ' : 'จัดตารางอัตโนมัติ'} 
                 />
                 <HeaderLink 
-                  active={currentPage === 'home'} 
-                  onClick={() => navigateTo('home')} 
-                  label="ข้อมูลส่วนตัว" 
+                  active={currentPage === 'schedules'} 
+                  onClick={() => navigateTo('schedules')} 
+                  label="ตารางที่บันทึกไว้" 
                 />
               </nav>
 
